@@ -1,0 +1,2212 @@
+<!DOCTYPE html>
+<html lang="te">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>హోటల్ డ్యూటీ ట్రాకర్</title>
+<style>
+  :root{
+    --navy:#12213f;
+    --navy-2:#1c3363;
+    --gold:#e8b93f;
+    --cream:#fbf6ea;
+    --green:#1c6b3c;
+    --orange:#c1481d;
+    --purple:#4a2a7a;
+    --night:#0e1730;
+    --ink:#1d2433;
+    --line:#e4d9bd;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Noto Sans Telugu','Gautami',sans-serif;
+    background:var(--cream);
+    color:var(--ink);
+    min-height:100vh;
+  }
+  .topbar{
+    background:var(--navy);
+    color:#fff;
+    padding:14px 132px 12px 42px;
+    text-align:center;
+    position:relative;
+    box-shadow:0 3px 0 var(--gold);
+  }
+  .topbar h1{
+    margin:0;
+    font-size:1.15rem;
+    letter-spacing:.3px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .topbar .sub{
+    font-size:.8rem;
+    opacity:.75;
+    margin-top:4px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .gear{
+    position:absolute;
+    top:14px; right:14px;
+    background:none;
+    border:none;
+    font-size:1.3rem;
+    cursor:pointer;
+    color:#fff;
+  }
+  .gear.eye{ right:54px; font-size:1.15rem; }
+  .backbtn{
+    position:absolute;
+    top:12px; left:10px;
+    background:none;
+    border:none;
+    font-size:1.5rem;
+    cursor:pointer;
+    color:#fff;
+    padding:4px 8px;
+    z-index:2;
+  }
+  .screen{
+    display:none;
+    padding:18px 14px 100px;
+    max-width:620px;
+    margin:0 auto;
+  }
+  .screen.active{display:block;}
+
+  /* Worker select */
+  .worker-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+    margin-top:18px;
+  }
+  .worker-card{
+    background:#fff;
+    border:2px solid var(--line);
+    border-radius:16px;
+    padding:22px 10px;
+    text-align:center;
+    cursor:pointer;
+    transition:transform .1s;
+  }
+  .worker-card:active{transform:scale(.96); background:#fff7e2;}
+  .worker-card .emoji{font-size:2.6rem; display:block; margin-bottom:8px;}
+  .worker-card .name{font-size:1.15rem; font-weight:700; color:var(--navy);}
+
+  /* Day select */
+  .day-grid{
+    display:flex;
+    gap:14px;
+    margin-top:22px;
+  }
+  .day-card{
+    flex:1;
+    background:#fff;
+    border:2px solid var(--line);
+    border-radius:16px;
+    padding:34px 10px;
+    text-align:center;
+    font-size:1.4rem;
+    font-weight:700;
+    color:var(--navy);
+    cursor:pointer;
+  }
+  .day-card:active{transform:scale(.96); background:#fff7e2;}
+  .day-card .n{
+    display:block;
+    font-size:2.4rem;
+    color:var(--gold);
+    -webkit-text-stroke:1px var(--navy);
+    margin-bottom:6px;
+  }
+
+  .hello{
+    text-align:center;
+    font-size:1.05rem;
+    color:#555;
+    margin-top:4px;
+  }
+  .hello b{color:var(--navy);}
+
+  /* Checklist */
+  .progress-wrap{
+    background:#fff;
+    border:2px solid var(--line);
+    border-radius:14px;
+    padding:12px 14px;
+    margin-bottom:16px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .progress-bar{
+    flex:1;
+    height:12px;
+    background:#eee2c2;
+    border-radius:8px;
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;
+    background:var(--green);
+    width:0%;
+    transition:width .25s;
+  }
+  .progress-text{font-weight:700; color:var(--navy); font-size:.95rem; white-space:nowrap;}
+
+  .shift-block{margin-bottom:16px;}
+  .shift-title{
+    color:#fff;
+    padding:8px 12px;
+    border-radius:10px 10px 0 0;
+    font-weight:700;
+    font-size:.95rem;
+  }
+  .shift-title.morning{background:var(--green);}
+  .shift-title.afternoon{background:var(--orange);}
+  .shift-title.evening{background:var(--purple);}
+  .shift-title.night{background:var(--night);}
+
+  .task-list{
+    background:#fff;
+    border:2px solid var(--line);
+    border-top:none;
+    border-radius:0 0 10px 10px;
+  }
+  .task-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:14px 12px;
+    border-bottom:1px solid var(--line);
+    cursor:pointer;
+  }
+  .task-row:last-child{border-bottom:none;}
+  .task-row.done{background:#f2f9f0;}
+  .task-emoji{font-size:1.5rem; width:32px; text-align:center;}
+  .task-text{flex:1;}
+  .task-name{font-size:1.02rem; font-weight:600; color:var(--ink);}
+  .task-time{font-size:.8rem; color:#777; margin-top:2px;}
+  .check{
+    width:30px; height:30px;
+    border-radius:8px;
+    border:2px solid #bbb;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:1.1rem;
+    color:#fff;
+    flex-shrink:0;
+  }
+  .task-row.done .check{background:var(--green); border-color:var(--green);}
+
+  .footer-bar{
+    position:fixed;
+    bottom:0; left:0; right:0;
+    background:#fff;
+    border-top:2px solid var(--line);
+    padding:12px 14px calc(12px + env(safe-area-inset-bottom));
+    display:flex;
+    gap:10px;
+    max-width:620px;
+    margin:0 auto;
+  }
+  .btn{
+    flex:1;
+    border:none;
+    border-radius:12px;
+    padding:16px 10px;
+    font-size:1.05rem;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .btn-primary{background:var(--green); color:#fff;}
+  .btn-primary:active{background:#155230;}
+  .btn-secondary{background:#eee; color:#444;}
+
+  /* settings modal */
+  .modal-bg{
+    display:none;
+    position:fixed; inset:0;
+    background:rgba(0,0,0,.5);
+    align-items:center;
+    justify-content:center;
+    z-index:50;
+    padding:20px;
+  }
+  .modal-bg.active{display:flex;}
+  .modal{
+    background:#fff;
+    border-radius:16px;
+    padding:22px;
+    width:100%;
+    max-width:380px;
+  }
+  .modal h3{margin-top:0; color:var(--navy);}
+  .modal input{
+    width:100%;
+    padding:12px;
+    font-size:1rem;
+    border:2px solid var(--line);
+    border-radius:10px;
+    margin:10px 0 16px;
+  }
+  .modal .row{display:flex; gap:10px;}
+
+  .toast{
+    position:fixed;
+    bottom:90px; left:50%; transform:translateX(-50%);
+    background:var(--navy); color:#fff;
+    padding:12px 18px; border-radius:10px;
+    font-size:.95rem;
+    z-index:60;
+    max-width:90%;
+    text-align:center;
+    display:none;
+  }
+
+  /* topbar icon row */
+  .topbar-icons{
+    position:absolute;
+    top:15px; right:6px;
+    display:flex;
+    align-items:center;
+    gap:5px;
+    white-space:nowrap;
+  }
+  .icon-btn{
+    background:none;
+    border:none;
+    font-size:0.95rem;
+    color:#fff;
+    cursor:pointer;
+    padding:3px 1px;
+    line-height:1;
+  }
+
+  /* rotation switch banner */
+  .rotation-bar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    background:#fff7e2;
+    border:2px solid var(--gold);
+    border-radius:12px;
+    padding:10px 12px;
+    margin-bottom:14px;
+    font-size:.82rem;
+    color:var(--navy);
+  }
+  .rotation-bar b{color:var(--navy);}
+  .rotation-switch{
+    background:var(--navy);
+    color:#fff;
+    border:none;
+    border-radius:8px;
+    padding:7px 10px;
+    font-size:.78rem;
+    font-weight:700;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+
+  .note-bar{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    background:#eaf3ff;
+    border:2px solid #a9c9f2;
+    border-radius:12px;
+    padding:10px 12px;
+    margin-bottom:14px;
+    font-size:.85rem;
+    color:#1f3a5f;
+    line-height:1.4;
+  }
+
+  /* periodic duties */
+  .pd-card{
+    background:#fff;
+    border:2px solid var(--line);
+    border-radius:14px;
+    padding:14px;
+    margin-bottom:12px;
+  }
+  .pd-top{display:flex; align-items:flex-start; gap:12px;}
+  .pd-icon{font-size:1.7rem; width:34px; text-align:center; flex-shrink:0;}
+  .pd-name{font-weight:700; color:var(--navy); font-size:1rem;}
+  .pd-freq{font-size:.78rem; color:#777; margin-top:2px;}
+  /* weekday picker chips (Mon/Fri style schedules) */
+  .wd-row{display:flex; gap:6px; margin-top:8px; flex-wrap:nowrap;}
+  .wd-chip{
+    flex:1; min-width:0; text-align:center;
+    border:1px solid #cdd6e6; border-radius:9px;
+    padding:9px 2px; font-size:.78rem; font-weight:700;
+    color:var(--navy-2); background:#fff;
+    -webkit-tap-highlight-color:transparent; cursor:pointer;
+  }
+  .wd-chip.on{background:var(--navy-2); border-color:var(--navy-2); color:#fff;}
+  .wd-hint{font-size:.75rem; color:#888; margin-top:6px;}
+  .pd-status{
+    display:inline-block;
+    margin-top:10px;
+    padding:5px 10px;
+    border-radius:20px;
+    font-size:.8rem;
+    font-weight:700;
+  }
+  .status-never{background:#eee; color:#666;}
+  .status-ok{background:#e6f3e9; color:var(--green);}
+  .status-soon{background:#fff3d9; color:#a5760d;}
+  .status-due{background:#ffe9d6; color:var(--orange);}
+  .status-overdue{background:#fbdede; color:#c0392b;}
+  .pd-meta{font-size:.78rem; color:#888; margin-top:8px;}
+  .pd-actions{display:flex; gap:8px; margin-top:12px;}
+  .pd-actions button{
+    border:none;
+    border-radius:10px;
+    padding:10px;
+    font-size:.85rem;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .pd-btn-done{flex:1; background:var(--green); color:#fff;}
+  .pd-btn-edit{width:44px; background:#eee; color:#444;}
+
+  .pd-section-title{
+    color:#fff;
+    background:var(--navy);
+    padding:9px 14px;
+    border-radius:10px;
+    font-weight:700;
+    font-size:.92rem;
+    margin:20px 0 10px;
+  }
+  .pd-section-title:first-child{margin-top:0;}
+
+  /* prominent home-screen entry card for periodic duties */
+  .home-feature-card{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    background:linear-gradient(135deg,var(--navy),var(--navy-2));
+    border:2px solid var(--gold);
+    border-radius:16px;
+    padding:18px 16px;
+    margin-top:20px;
+    cursor:pointer;
+    box-shadow:0 3px 0 rgba(0,0,0,.08);
+  }
+  .home-feature-card:active{transform:scale(.98);}
+  .home-feature-card .hf-icon{font-size:2.2rem; flex-shrink:0;}
+  .home-feature-card .hf-text{flex:1;}
+  .home-feature-card .hf-title{color:#fff; font-weight:700; font-size:1.05rem;}
+  .home-feature-card .hf-sub{color:var(--gold); font-size:.8rem; margin-top:3px;}
+  .home-feature-card .hf-arrow{color:var(--gold); font-size:1.4rem;}
+
+  /* checkbox-style trigger on periodic duty cards */
+  .pd-check-row{display:flex; align-items:center; gap:12px; margin-top:12px;}
+  .task-note{ margin-top:10px; font-size:.82rem; font-weight:600; color:#8a6d1a; background:#fff8e6;
+    border:1px dashed #e6cf87; border-radius:9px; padding:8px 11px; cursor:pointer; line-height:1.5; }
+  .task-note.has{ color:#4a3a10; background:#fdf3d4; border-style:solid; }
+  .task-note .note-by{ font-weight:700; opacity:.7; }
+  .pd-check{
+    width:30px; height:30px;
+    border-radius:8px;
+    border:2px solid #bbb;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.1rem; color:#fff;
+    flex-shrink:0; cursor:pointer;
+  }
+  .pd-check.checked{background:var(--green); border-color:var(--green);}
+  .pd-check-label{font-size:.88rem; color:var(--ink); font-weight:600; cursor:pointer;}
+
+  .modal select, .modal input[type=date]{
+    width:100%;
+    padding:12px;
+    font-size:1rem;
+    border:2px solid var(--line);
+    border-radius:10px;
+    margin:6px 0 14px;
+    font-family:inherit;
+  }
+
+  /* history */
+  .hist-tabs{display:flex; gap:8px; margin-bottom:14px;}
+  .hist-tab{
+    flex:1;
+    text-align:center;
+    padding:10px;
+    border-radius:10px;
+    border:2px solid var(--line);
+    background:#fff;
+    font-weight:700;
+    font-size:.85rem;
+    color:#777;
+    cursor:pointer;
+  }
+  .hist-tab.active{background:var(--navy); color:#fff; border-color:var(--navy);}
+  .hist-datepick{
+    width:100%;
+    padding:10px;
+    border:2px solid var(--line);
+    border-radius:10px;
+    font-family:inherit;
+    font-size:.9rem;
+    margin-bottom:14px;
+  }
+  .hist-row{
+    background:#fff;
+    border:2px solid var(--line);
+    border-left:5px solid var(--green);
+    border-radius:10px;
+    padding:10px 12px;
+    margin-bottom:8px;
+  }
+  .hist-row.undone{border-left-color:#bbb;}
+  .hist-row .hist-top{display:flex; justify-content:space-between; font-size:.82rem; color:var(--navy); font-weight:700;}
+  .hist-row .hist-task{font-size:.92rem; margin-top:4px; color:var(--ink);}
+  .hist-row .hist-time{font-size:.75rem; color:#999; margin-top:4px;}
+  .hist-empty{text-align:center; color:#999; font-size:.9rem; margin-top:30px;}
+</style>
+
+
+<!-- ═══ OneStop: database sign-in + Home link. Loads before the app so every
+     database call carries the signed-in token. See os-auth.js. ═══ -->
+<script>window.OS_AUTH = { role:'staff', title:'డ్యూటీ ట్రాకర్', home:'index.html' };</script>
+<script src="os-auth.js"></script>
+</head>
+<body>
+
+<div class="topbar">
+  <button class="backbtn" id="backBtn" style="display:none;" onclick="goBack()">←</button>
+  <h1 id="topTitle">🧹 హోటల్ డ్యూటీ ట్రాకర్</h1>
+  <div class="sub" id="topSub">మీ పేరు ఎంచుకోండి</div>
+  <div class="sub" id="dutySyncStatus" style="font-size:.7rem;opacity:.65;margin-top:3px;"></div>
+  <div class="topbar-icons">
+    <button class="icon-btn" onclick="openPeriodicView()" title="అదనపు విధులు">📅</button>
+    <button class="icon-btn" id="notifBtn" onclick="toggleNotifications()" title="నోటిఫికేషన్లు">🔕</button>
+    <button class="icon-btn" onclick="openHistoryView()" title="హిస్టరీ">🕘</button>
+    <button class="icon-btn" id="eyeBtn" onclick="openOwnerView()" title="Owner view">👁️</button>
+    <button class="icon-btn" onclick="openSettings()">⚙️</button>
+  </div>
+</div>
+
+<!-- SCREEN 1: choose worker -->
+<div class="screen active" id="screen-worker">
+  <div class="worker-grid" id="workerGrid"></div>
+  <div class="home-feature-card" onclick="openPeriodicView()">
+    <div class="hf-icon">📅</div>
+    <div class="hf-text">
+      <div class="hf-title">అదనపు విధులు</div>
+      <div class="hf-sub" id="hfSub">రోజువారీ / వారం / 15 రోజుల / నెలవారీ శుభ్రత పనులు — ఇక్కడ చూడండి</div>
+    </div>
+    <div class="hf-arrow">›</div>
+  </div>
+</div>
+
+<!-- SCREEN 2: checklist -->
+<div class="screen" id="screen-tasks">
+  <div class="rotation-bar" id="rotationBar" style="display:none;">
+    <div>🔁 ఈరోజు క్రమం: <b id="rotationLabel"></b> <span style="opacity:.7;">(ఆటోమేటిక్)</span></div>
+    <button class="rotation-switch" onclick="switchRotation()">మార్చండి</button>
+  </div>
+  <div class="note-bar" id="noteBar" style="display:none;"></div>
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-text" id="progressText">0/0</div>
+  </div>
+  <div id="taskContainer"></div>
+  <button class="btn btn-secondary" style="width:100%;margin-top:16px;" onclick="openChecklistView(state.worker)">🗓️ అదనపు / ఫ్రీక్వెన్సీ విధులు — చేర్చు / మార్చు</button>
+</div>
+
+<!-- SCREEN 3: periodic / additional duties -->
+<div class="screen" id="screen-periodic">
+  <div id="periodicList"></div>
+</div>
+
+<!-- SCREEN 4: history -->
+<div class="screen" id="screen-history">
+  <div class="hist-tabs">
+    <div class="hist-tab active" id="histTabDaily" onclick="setHistTab('daily')">రోజువారీ డ్యూటీలు</div>
+    <div class="hist-tab" id="histTabPeriodic" onclick="setHistTab('periodic')">అదనపు విధులు</div>
+  </div>
+  <input type="date" class="hist-datepick" id="histDatePick" onchange="renderHistory()">
+  <div id="historyList"></div>
+</div>
+
+<!-- SCREEN 6: checklist worker (Triveni / Laxman) -->
+<div class="screen" id="screen-checklist">
+  <div class="note-bar" id="clNoteBar" style="display:flex;">📋 విధి పూర్తయ్యాక దానిపై నొక్కి తేదీ నమోదు చేయండి. వారం / నెల పనులకు తదుపరి తేదీ ఆటోమేటిక్‌గా చూపబడుతుంది.</div>
+  <div id="checklistList"></div>
+  <button class="btn btn-primary" style="width:100%;margin-top:14px;" onclick="openAddDuty('checklist')">➕ కొత్త విధి చేర్చండి</button>
+</div>
+
+<!-- SCREEN 5: owner view -->
+<div class="screen" id="screen-owner">
+  <div id="ownerSyncStatus" style="font-size:.78rem;color:#888;margin-bottom:12px;">Connecting…</div>
+  <div id="ownerList"></div>
+</div>
+
+<div class="footer-bar" id="footerBar" style="display:none;">
+  <button class="btn btn-secondary" onclick="resetAll()">↺ మళ్ళీ మొదలు</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- periodic duty date-entry modal -->
+<div class="modal-bg" id="periodicModal">
+  <div class="modal">
+    <h3 id="periodicModalTitle">✅ పూర్తయిందిగా గుర్తించండి</h3>
+    <div style="font-size:.85rem;color:#666;">ఏ తేదీన పూర్తి చేశారు?</div>
+    <input type="date" id="periodicDateInput" onchange="updatePdNextHint()">
+    <div id="pdNextHint" style="display:none;font-size:.85rem;font-weight:600;color:var(--green);background:#e6f3e9;border-radius:8px;padding:8px 10px;margin:2px 0 4px;"></div>
+    <div style="font-size:.85rem;color:#666;">ఎవరు చేశారు?</div>
+    <select id="periodicWorkerSelect"></select>
+    <div class="row">
+      <button class="btn btn-secondary" onclick="closePeriodicModal()">రద్దు</button>
+      <button class="btn btn-primary" onclick="savePeriodicDate()">సేవ్ చేయండి</button>
+    </div>
+    <button id="periodicClearBtn" class="btn" style="display:none;width:100%;margin-top:10px;background:#fbdede;color:#c0392b;" onclick="clearPeriodicDate()">↺ మార్క్ తీసివేయండి (అన్‌చెక్)</button>
+  </div>
+</div>
+
+<!-- checklist duty: mark-done modal -->
+<div class="modal-bg" id="clModal">
+  <div class="modal">
+    <h3 id="clModalTitle">✅ పూర్తయిందిగా గుర్తించండి</h3>
+    <div style="font-size:.85rem;color:#666;">ఏ తేదీన పూర్తి చేశారు?</div>
+    <input type="date" id="clDateInput" onchange="updateClNextHint()">
+    <div id="clNextHint" style="display:none;font-size:.85rem;font-weight:600;color:var(--green);background:#e6f3e9;border-radius:8px;padding:8px 10px;margin:2px 0 4px;"></div>
+    <div style="font-size:.85rem;color:#666;">ఎవరు చేశారు?</div>
+    <select id="clWorkerSelect"></select>
+    <div class="row">
+      <button class="btn btn-secondary" onclick="closeClModal()">రద్దు</button>
+      <button class="btn btn-primary" onclick="saveClDate()">సేవ్ చేయండి</button>
+    </div>
+    <button id="clClearBtn" class="btn" style="display:none;width:100%;margin-top:10px;background:#fbdede;color:#c0392b;" onclick="clearClDate()">↺ మార్క్ తీసివేయండి (అన్‌చెక్)</button>
+  </div>
+</div>
+
+<!-- checklist: add new duty modal -->
+<div class="modal-bg" id="addDutyModal">
+  <div class="modal">
+    <h3>➕ కొత్త విధి చేర్చండి</h3>
+    <div style="font-size:.85rem;color:#666;">విధి పేరు</div>
+    <input type="text" id="addDutyName" placeholder="ఉదా: వాటర్ ట్యాంక్ శుభ్రపరచడం / water tank cleaning">
+    <button type="button" onclick="translateField('addDutyName','addTrStatus')" style="margin-top:6px;border:1px solid #cdd6e6;border-radius:9px;padding:7px 12px;font-size:.8rem;font-weight:700;color:#1c3363;background:#eef3fb;">🌐 తెలుగులోకి అనువదించు (Translate)</button>
+    <span id="addTrStatus" style="font-size:.75rem;color:#888;margin-left:8px;"></span>
+    <div style="font-size:.85rem;color:#666;margin-top:10px;">ఎంత తరచుగా? (ఫ్రీక్వెన్సీ)</div>
+    <select id="addDutyFreq" onchange="onFreqSelChange('add')"></select>
+    <div id="addWdaysWrap" style="display:none;">
+      <div class="wd-row" id="addWdaysRow"></div>
+      <div class="wd-hint">ఏ రోజుల్లో చేయాలో ఎంచుకోండి (ఉదా: సోమ + శుక్ర)</div>
+    </div>
+    <div class="row">
+      <button class="btn btn-secondary" onclick="closeAddDuty()">రద్దు</button>
+      <button class="btn btn-primary" onclick="saveAddDuty()">చేర్చండి</button>
+    </div>
+  </div>
+</div>
+
+<!-- task note / reason modal -->
+<div class="modal-bg" id="noteModal">
+  <div class="modal">
+    <h3 id="noteModalTitle">📝 కారణం / గమనిక</h3>
+    <div style="font-size:.85rem;color:#666;">పని పూర్తి కాకపోతే కారణం రాయండి (English or Telugu)</div>
+    <textarea id="noteText" rows="3" style="width:100%;box-sizing:border-box;border:1px solid #cdd6e6;border-radius:9px;padding:10px;font-size:.95rem;font-family:inherit;resize:vertical;"></textarea>
+    <button type="button" onclick="translateField('noteText','noteTrStatus')" style="margin-top:6px;border:1px solid #cdd6e6;border-radius:9px;padding:7px 12px;font-size:.8rem;font-weight:700;color:#1c3363;background:#eef3fb;">🌐 తెలుగులోకి అనువదించు (Translate)</button>
+    <span id="noteTrStatus" style="font-size:.75rem;color:#888;margin-left:8px;"></span>
+    <div style="font-size:.85rem;color:#666;margin-top:10px;">ఎవరు?</div>
+    <select id="noteBy"></select>
+    <div class="row">
+      <button class="btn btn-secondary" onclick="closeNoteModal()">రద్దు</button>
+      <button class="btn btn-primary" onclick="saveNote()">సేవ్ చేయండి</button>
+    </div>
+    <button id="noteClearBtn" class="btn" style="display:none;width:100%;margin-top:10px;background:#fbdede;color:#c0392b;" onclick="clearNote()">🗑️ గమనిక తీసివేయి</button>
+  </div>
+</div>
+
+<!-- checklist: edit duty modal -->
+<div class="modal-bg" id="editDutyModal">
+  <div class="modal">
+    <h3>✏️ విధిని మార్చండి</h3>
+    <div style="font-size:.85rem;color:#666;">విధి పేరు</div>
+    <input type="text" id="editDutyName">
+    <button type="button" onclick="translateField('editDutyName','editTrStatus')" style="margin-top:6px;border:1px solid #cdd6e6;border-radius:9px;padding:7px 12px;font-size:.8rem;font-weight:700;color:#1c3363;background:#eef3fb;">🌐 తెలుగులోకి అనువదించు (Translate)</button>
+    <span id="editTrStatus" style="font-size:.75rem;color:#888;margin-left:8px;"></span>
+    <div style="font-size:.85rem;color:#666;margin-top:10px;">ఎంత తరచుగా? (ఫ్రీక్వెన్సీ)</div>
+    <select id="editDutyFreq" onchange="onFreqSelChange('edit')"></select>
+    <div id="editWdaysWrap" style="display:none;">
+      <div class="wd-row" id="editWdaysRow"></div>
+      <div class="wd-hint">ఏ రోజుల్లో చేయాలో ఎంచుకోండి (ఉదా: సోమ + శుక్ర)</div>
+    </div>
+    <div class="row">
+      <button class="btn btn-secondary" onclick="closeEditDuty()">రద్దు</button>
+      <button class="btn btn-primary" onclick="saveEditDuty()">సేవ్ చేయండి</button>
+    </div>
+    <button id="editResetBtn" class="btn" style="display:none;width:100%;margin-top:10px;background:#eef;color:#334;" onclick="resetDutyToDefault()">↺ డిఫాల్ట్ షెడ్యూల్‌కు మార్చు</button>
+    <button id="editDeleteBtn" class="btn" style="display:none;width:100%;margin-top:10px;background:#fbdede;color:#c0392b;" onclick="deleteFromEdit()">🗑️ ఈ విధిని తీసివేయి</button>
+  </div>
+</div>
+
+<!-- settings modal -->
+<div class="modal-bg" id="settingsModal">
+  <div class="modal">
+    <h3>⚙️ యజమాని WhatsApp నంబర్</h3>
+    <div style="font-size:.85rem;color:#666;margin-bottom:4px;">దేశ కోడ్‌తో సహా (ఉదా: 91XXXXXXXXXX)</div>
+    <input type="tel" id="ownerPhone" placeholder="91XXXXXXXXXX">
+    <div class="row">
+      <button class="btn btn-secondary" onclick="closeSettings()">రద్దు</button>
+      <button class="btn btn-primary" onclick="saveSettings()">సేవ్ చేయండి</button>
+    </div>
+    <button class="btn" style="width:100%;margin-top:14px;background:#eef3fb;color:#1c3363;border:1px solid #cdd6e6;" onclick="openNamesModal()">👥 పనివారి పేర్లు మార్చండి (Edit worker names)</button>
+  </div>
+</div>
+
+<!-- edit worker names modal -->
+<div class="modal-bg" id="namesModal">
+  <div class="modal" style="max-height:82vh;overflow-y:auto;">
+    <h3>👥 పనివారి పేర్లు మార్చండి</h3>
+    <div style="font-size:.82rem;color:#666;margin-bottom:12px;">
+      పేరును ఇంగ్లీషులో టైప్ చేసి <b>🌐 తెలుగులోకి</b> నొక్కండి — లేదా నేరుగా తెలుగులో టైప్ చేయండి.
+      మార్పులు అన్ని ఫోన్‌లలో కనబడతాయి. (డ్యూటీలు, హిస్టరీ మారవు.)
+    </div>
+    <div id="namesList"></div>
+    <div class="row" style="margin-top:6px;">
+      <button class="btn btn-secondary" onclick="closeNamesModal()">రద్దు</button>
+      <button class="btn btn-primary" onclick="saveNames()">సేవ్ చేయండి</button>
+    </div>
+  </div>
+</div>
+
+
+<script>
+const WORKERS = ["త్రివేణి","లక్ష్మణ్","కృష్ణవేణి","మానసా","వెంకటేష్","పొన్నయ్య"];
+const WORKER_EMOJI = {"త్రివేణి":"👩‍💼","లక్ష్మణ్":"👨‍🌾","కృష్ణవేణి":"🧑‍🔧","మానసా":"👩‍🍳","వెంకటేష్":"🧑‍💼","పొన్నయ్య":"🧑‍🦱"};
+const WORKER_ROLE = {"త్రివేణి":"మేనేజర్"};
+// These staff use the frequency-based checklist screen (daily / weekly / biweekly /
+// monthly / anytime) instead of the time-shift + Day-A/Day-B rotation schedule.
+const CHECKLIST_WORKERS = ["త్రివేణి","లక్ష్మణ్"];
+function isChecklistWorker(w){ return CHECKLIST_WORKERS.indexOf(w) !== -1; }
+
+// ---- Editable worker display names ----------------------------------------
+// The original Telugu names above stay FIXED as internal keys (used for the
+// schedule, Firebase storage paths and history), so renaming can never break
+// or orphan any synced data. What the owner edits is only a display name that
+// sits on top. Overrides are synced via Firebase + cached locally for offline.
+const NAMES_PATH = 'onestop-duty-worker-names';   // Firebase node: { originalKey: displayName }
+const NAMES_CACHE_KEY = 'duty-worker-names';
+let nameOverrides = {};
+function displayName(w){ return (nameOverrides && nameOverrides[w]) ? nameOverrides[w] : w; }
+async function loadNameOverrides(){
+  try{ const local = await localGet(NAMES_CACHE_KEY); if(local && typeof local==='object') nameOverrides = local; }catch(e){}
+  try{
+    const remote = await firebaseGet(NAMES_PATH);
+    if(remote && typeof remote==='object'){ nameOverrides = remote; localSet(NAMES_CACHE_KEY, remote); }
+  }catch(e){}
+  try{ renderWorkers(); }catch(e){}
+}
+
+const ICONS = [
+  ["బాత్రూమ్","🚽"],["వంటగది పాత్రల","🍽️"],["డైనింగ్ టేబుల్స్","🪑"],
+  ["వాహనాల పార్కింగ్","🚗"],["తలుపులు","🚪"],["గది శుభ్రపరచడం","🛏️"],
+  ["వెయిటర్","🧑‍🍳"],["సూపర్‌వైజర్","👔"],["బ్రేక్","☕"],["విశ్రాంతి","😌"]
+];
+function iconFor(task){
+  for(const [k,e] of ICONS){ if(task.includes(k)) return e; }
+  return "🧹";
+}
+
+const SCHEDULE = {
+  "కృష్ణవేణి": {
+    1:[
+      ["7:00 AM - 11:30 AM","బాత్రూమ్ శుభ్రపరచడం"],
+      ["7:00 AM - 11:30 AM","వంటగది పాత్రల శుభ్రపరచడం"],
+      ["7:00 AM - 11:30 AM","గది శుభ్రపరచడం (రూమ్ క్లీనింగ్)"],
+      ["12:30 PM - 5:00 PM","వంటగది పాత్రల శుభ్రపరచడం"],
+      ["5:00 PM - 6:00 PM","విశ్రాంతి"],
+      ["6:00 PM - 7:00 PM","గది శుభ్రపరచడం (రూమ్ క్లీనింగ్)"],
+      ["7:00 PM - 9:00 PM","డైనింగ్ టేబుల్స్ & వంటగది పాత్రల శుభ్రపరచడం"]
+    ],
+    2:[
+      ["7:00 AM - 11:30 AM","బాత్రూమ్ శుభ్రపరచడం"],
+      ["7:00 AM - 11:30 AM","వంటగది పాత్రల శుభ్రపరచడం"],
+      ["7:00 AM - 11:30 AM","గది శుభ్రపరచడం (రూమ్ క్లీనింగ్)"],
+      ["12:30 PM - 5:00 PM","డైనింగ్ టేబుల్స్ శుభ్రపరచడం"],
+      ["5:00 PM - 6:00 PM","గది శుభ్రపరచడం (రూమ్ క్లీనింగ్)"],
+      ["6:00 PM - 7:00 PM","విశ్రాంతి"],
+      ["7:00 PM - 9:00 PM","డైనింగ్ టేబుల్స్ & వంటగది పాత్రల శుభ్రపరచడం"]
+    ]
+  },
+  "మానసా": {
+    1:[
+      ["7:00 AM - 11:30 AM","బాత్రూమ్ శుభ్రపరచడం"],
+      ["7:00 AM - 11:30 AM","వంటగది పాత్రల శుభ్రపరచడం"],
+      ["7:00 AM - 11:30 AM","గది శుభ్రపరచడం (రూమ్ క్లీనింగ్)"],
+      ["12:30 PM - 5:00 PM","డైనింగ్ టేబుల్స్ శుభ్రపరచడం"],
+      ["5:00 PM - 6:00 PM","గది శుభ్రపరచడం (రూమ్ క్లీనింగ్)"],
+      ["6:00 PM - 7:00 PM","విశ్రాంతి"],
+      ["7:00 PM - 9:00 PM","డైనింగ్ టేబుల్స్ & వంటగది పాత్రల శుభ్రపరచడం"]
+    ],
+    2:[
+      ["7:00 AM - 11:30 AM","బాత్రూమ్ శుభ్రపరచడం"],
+      ["7:00 AM - 11:30 AM","వంటగది పాత్రల శుభ్రపరచడం"],
+      ["7:00 AM - 11:30 AM","గది శుభ్రపరచడం (రూమ్ క్లీనింగ్)"],
+      ["12:30 PM - 5:00 PM","వంటగది పాత్రల శుభ్రపరచడం"],
+      ["5:00 PM - 6:00 PM","విశ్రాంతి"],
+      ["6:00 PM - 7:00 PM","గది శుభ్రపరచడం (రూమ్ క్లీనింగ్)"],
+      ["7:00 PM - 9:00 PM","డైనింగ్ టేబుల్స్ & వంటగది పాత్రల శుభ్రపరచడం"]
+    ]
+  },
+  "వెంకటేష్": {
+    1:[
+      ["7:00 AM - 11:30 AM","డైనింగ్ టేబుల్స్ శుభ్రపరచడం"],
+      ["7:00 AM - 11:30 AM","వాహనాల పార్కింగ్ శుభ్రపరచడం"],
+      ["7:00 AM - 11:30 AM","గది శుభ్రపరచడం (రూమ్ క్లీనింగ్)"],
+      ["12:30 PM - 4:00 PM","వెయిటర్ డ్యూటీ"],
+      ["4:00 PM - 6:00 PM","బ్రేక్"],
+      ["6:00 PM - 11:00 PM","వెయిటర్ డ్యూటీ & లాడ్జ్ సూపర్‌వైజర్"]
+    ]
+  },
+  "పొన్నయ్య": {
+    1:[
+      ["9:00 AM - 11:30 AM","రూమ్ క్లీనింగ్"],
+      ["9:00 AM - 11:30 AM","హోటల్ తలుపులు శుభ్రపరచడం"],
+      ["9:00 AM - 11:30 AM","కూల్ డ్రింక్స్ ఫ్రిజ్ శుభ్రపరచడం"],
+      ["9:00 AM - 11:30 AM","కిచెన్ ఫ్రిజ్ శుభ్రపరచడం (లోపల & బయట)"],
+      ["12:30 PM - 6:00 PM","వెయిటర్ డ్యూటీ"],
+      ["6:00 PM - 7:00 PM","బ్రేక్"],
+      ["7:00 PM - 11:00 PM","వెయిటర్ డ్యూటీ"]
+    ]
+  }
+};
+// venkatesh & pachayya don't rotate — mirror day1 into day2
+SCHEDULE["వెంకటేష్"][2] = SCHEDULE["వెంకటేష్"][1];
+SCHEDULE["పొన్నయ్య"][2] = SCHEDULE["పొన్నయ్య"][1];
+
+function shiftOf(time){
+  if(time.includes("7:00 AM")) return "morning";
+  if(time.includes("12:30 PM")) return "afternoon";
+  if(time.startsWith("4:00 PM")) return "evening";
+  if(time.includes(" - 11:00 PM")) return "night";
+  if(time.includes("5:") && !time.includes("PM - 9") ) return "evening";
+  if(time.includes("7:") && time.includes("PM")) return "night";
+  return "morning";
+}
+const SHIFT_LABEL = {morning:"🌞 ఉదయం",afternoon:"🌤 మధ్యాహ్నం",evening:"🌇 సాయంత్రం",night:"🌙 రాత్రి"};
+
+// ---- Additional / periodic duties (from the "అదనపు విధుల నమోదు పట్టిక" chart) ----
+// freqDays = how many days between one completion and the next due date.
+const PERIODIC_TASKS = [
+  {id:"windows", icon:"🪟", name:"కిటికీల అద్దాల శుభ్రపరచడం", freq:"monthly"},
+  {id:"chimney", icon:"🍳", name:"కిచెన్ చిమ్నీ శుభ్రపరచడం", freq:"biweekly"},
+  {id:"kitchen_deep", icon:"🚰", name:"నీటితో పూర్తిగా కిచెన్ శుభ్రపరచడం (సోమ & శుక్ర)", freq:"weekdays", wdays:[1,5]},
+  {id:"pest", icon:"🐭", name:"ఎలుకల నుండు వేయడం", freq:"weekly"},
+  {id:"paste", icon:"🧄", name:"అల్లం-వెల్లుల్లి పేస్ట్ తయారీ", freq:"weekly"},
+  {id:"entrance", icon:"🧹", name:"ఫుడ్ కోర్ట్ ప్రధాన ప్రవేశ ద్వారం బయట ఊడ్చడం (స్వీపింగ్)", freq:"daily"},
+  {id:"kitchen_boxes", icon:"📦", name:"కిచెన్ బాక్సులు & ఇతర సామాగ్రి శుభ్రపరచడం", freq:"biweekly"},
+  {id:"fans_cobwebs", icon:"🕸️", name:"ఫ్యాన్లు & సాలెగూళ్ళు (బూజు) శుభ్రపరచడం", freq:"monthly"},
+  {id:"garden_ganesha", icon:"🌱", name:"లార్డ్ గణేశ విగ్రహం దగ్గర గార్డెన్ ఏరియా శుభ్రపరచడం", freq:"daily"},
+  {id:"weeds_ev", icon:"🌿", name:"EV ఛార్జింగ్ & ఫుడ్ కోర్ట్ & లాడ్జ్ చుట్టూ కలుపు మొక్కలు తీసివేసి, ఎండిన మొక్కలు శుభ్రపరచడం", freq:"weekly"},
+  {id:"dining_tables_water", icon:"🪑", name:"డైనింగ్ టేబుల్స్ నీటితో శుభ్రపరచడం", freq:"biweekly"}
+];
+
+
+// ---- Frequency options for the checklist workers (Triveni / Laxman) ----
+// days = gap to the next due date. anytime (days:0) has no due date.
+const FREQ = {
+  daily:        {days:1,  order:0, label:"ప్రతిరోజూ",              emoji:"📆"},
+  weekdays:     {days:-1, order:1, label:"ఎంచుకున్న రోజుల్లో",     emoji:"📌"},
+  twice_weekly: {days:3,  order:2, label:"వారానికి 2 సార్లు",      emoji:"🔁"},
+  weekly:       {days:7,  order:3, label:"వారానికి ఒకసారి",        emoji:"🗓️"},
+  biweekly:     {days:14, order:4, label:"రెండు వారాలకు ఒకసారి",   emoji:"📅"},
+  monthly:      {days:30, order:5, label:"నెలకు ఒకసారి",           emoji:"🗓️"},
+  anytime:      {days:0,  order:6, label:"అవసరమైనప్పుడు",          emoji:"🔧"}
+};
+const FREQ_ORDER = ["daily","weekdays","twice_weekly","weekly","biweekly","monthly","anytime"];
+function freqCfg(f){ return FREQ[f] || FREQ.daily; }
+
+// ---- weekday-anchored schedules (e.g. Mon & Fri) ----
+// 0 = Sunday … 6 = Saturday, matching JavaScript's Date.getDay()
+const WDAY_SHORT = ["ఆది","సోమ","మంగళ","బుధ","గురు","శుక్ర","శని"];
+const WDAY_FULL  = ["ఆదివారం","సోమవారం","మంగళవారం","బుధవారం","గురువారం","శుక్రవారం","శనివారం"];
+// always return a clean, sorted array of day numbers
+function normWdays(w){
+  if(!Array.isArray(w)) return [];
+  const out = [];
+  w.forEach(n=>{ n = parseInt(n,10); if(n>=0 && n<=6 && out.indexOf(n)<0) out.push(n); });
+  return out.sort((a,b)=>a-b);
+}
+function wdaysLabel(w){
+  w = normWdays(w);
+  return w.length ? w.map(n=>WDAY_SHORT[n]).join(', ') : 'రోజులు ఎంచుకోలేదు';
+}
+// the first scheduled weekday strictly AFTER `last` — no drift, unlike +N days
+function nextWeekdayDue(last, w){
+  w = normWdays(w);
+  if(!w.length) return null;
+  for(let i=1;i<=7;i++){
+    const d = new Date(last.getFullYear(), last.getMonth(), last.getDate()+i);
+    if(w.indexOf(d.getDay())>=0) return d;
+  }
+  return null;
+}
+// per-task frequency line: weekday tasks show their actual days
+function freqLine(task){
+  const cfg = freqCfg(task.freq);
+  if(task.freq === 'weekdays') return cfg.emoji+' '+wdaysLabel(task.wdays);
+  return cfg.emoji+' '+cfg.label;
+}
+function freqOptionsHtml(sel){
+  return FREQ_ORDER.map(f=>`<option value="${f}"${f===sel?' selected':''}>${FREQ[f].emoji} ${FREQ[f].label}</option>`).join('');
+}
+
+// ---- Built-in duties for the checklist workers ----
+const CHECKLIST_DUTIES = {
+  "త్రివేణి":[
+    {id:"tv1",  icon:"📋", freq:"daily", name:"ముందు రోజే — మరుసటి రోజు క్లీనింగ్ విభాగం అదనపు విధులు చూసి, సిబ్బందికి గుర్తు చేయడం"},
+    {id:"tv2",  icon:"📦", freq:"daily", name:"శ్రావ్య మేడమ్‌కు స్టాక్ అప్‌డేట్స్ పంపడం — కూల్‌డ్రింక్స్, చికెన్, మటన్, ఫిష్, ప్రాన్స్, క్లీనింగ్ లిక్విడ్స్ & టేకె అవే బ్యాగ్స్"},
+    {id:"tv3",  icon:"🧼", freq:"daily", name:"లాడ్జ్ రూమ్స్, కిచెన్ & స్టోర్ రూమ్ పరిశుభ్రతను రోజూ పర్యవేక్షించడం"},
+    {id:"tv4",  icon:"🛏️", freq:"daily", name:"లాడ్జ్ రూమ్స్ — చెక్‌అవుట్ తర్వాత రూమ్ సప్లయిస్ & ఏవైనా రిపేర్లు ఉన్నాయా అని సిబ్బందిచే చెక్ చేయించడం"},
+    {id:"tv5",  icon:"📓", freq:"daily", name:"లాడ్జ్ రూమ్స్ కోసం ప్రత్యేక పుస్తకం (బుక్) నిర్వహించడం"},
+    {id:"tv6",  icon:"👨‍🍳", freq:"daily", name:"చెఫ్ విధుల పర్యవేక్షణ — ఉదయం మేడమ్ నుండి ఇన్‌పుట్స్ తీసుకుంటున్నారా, రోజు చివర మిగిలిన ఆహారం అప్‌డేట్ చేస్తున్నారా"},
+    {id:"tv7",  icon:"📊", freq:"daily", name:"రాజు ఇన్వెంటరీ సరిగ్గా పంపుతున్నాడా అని పర్యవేక్షించడం"},
+    {id:"tv8",  icon:"🧮", freq:"daily", name:"ప్రతిరోజూ ఖాతాలు (అకౌంట్స్) నిర్వహించడం"}
+  ],
+  "లక్ష్మణ్":[
+    {id:"lx1",  icon:"🕕", freq:"daily",   name:"ఉదయం 6:30 — క్లోరిన్ నిర్వహణ"},
+    {id:"lx2",  icon:"🗑️", freq:"daily",   name:"ఉదయం 9:00 — ప్రాంగణం శుభ్రపరచడం & చెత్త సేకరణ"},
+    {id:"lx3",  icon:"🪴", freq:"daily",   name:"మొక్కలకు నీరు పోయడం"},
+    {id:"lx4",  icon:"💧", freq:"daily",   name:"డ్రిప్ ఇరిగేషన్ వ్యవస్థ తనిఖీ"},
+    {id:"lx5",  icon:"🍽️", freq:"weekly",  name:"బాంక్వెట్ హాల్ – అచ్యుతం శుభ్రపరచడం (శుభ్రం చేయడానికి 2 రోజులు)"},
+    {id:"lx5b", icon:"🍽️", freq:"weekly",  name:"బాంక్వెట్ హాల్ – కేశవం శుభ్రపరచడం (శుభ్రం చేయడానికి 2 రోజులు)"},
+    {id:"lx6",  icon:"🏛️", freq:"weekly",  name:"కన్వెన్షన్ హాల్ శుభ్రపరచడం"},
+    {id:"lx7",  icon:"🏊", freq:"weekly",  name:"స్విమ్మింగ్ పూల్ శుభ్రపరచడం"},
+    {id:"lx8",  icon:"🐭", freq:"weekly",  name:"ఫంక్షన్ హాల్‌లో ఎలుకల మందు వేయడం"},
+    {id:"lx9",  icon:"🪟", freq:"monthly", name:"బాంక్వెట్ హాల్ – అచ్యుతం కిటికీ అద్దాల శుభ్రపరచడం"},
+    {id:"lx9b", icon:"🪟", freq:"monthly", name:"బాంక్వెట్ హాల్ – కేశవం కిటికీ అద్దాల శుభ్రపరచడం"},
+    {id:"lx10", icon:"🪟", freq:"monthly", name:"కన్వెన్షన్ హాల్ కిటికీ అద్దాల శుభ్రపరచడం"},
+    {id:"lx11", icon:"✂️", freq:"weekly",  name:"తోట కత్తిరింపు (గార్డెన్ కటింగ్)"},
+    {id:"lx12", icon:"🧹", freq:"daily",   name:"తోట శుభ్రపరచడం (గార్డెన్ క్లీనింగ్)"}
+  ]
+};
+
+let state = {worker:null, day:null, tasks:[]};
+
+function stopAllPolling(){
+  if(typeof ownerPollTimer!=='undefined' && ownerPollTimer){ clearInterval(ownerPollTimer); ownerPollTimer=null; }
+  if(typeof periodicPollTimer!=='undefined' && periodicPollTimer){ clearInterval(periodicPollTimer); periodicPollTimer=null; }
+  if(typeof historyPollTimer!=='undefined' && historyPollTimer){ clearInterval(historyPollTimer); historyPollTimer=null; }
+  if(typeof clPollTimer!=='undefined' && clPollTimer){ clearInterval(clPollTimer); clPollTimer=null; }
+}
+
+// ---- Firebase (same project as the attendance/salary tracker, separate data path) ----
+const FIREBASE_URL = 'https://attendance-and-salary-tr-20681-default-rtdb.asia-southeast1.firebasedatabase.app';
+const DUTY_PATH = 'onestop-duty-data';
+
+function withTimeout(promise, ms){
+  return Promise.race([
+    promise,
+    new Promise((_,reject)=> setTimeout(()=>reject(new Error('timeout')), ms))
+  ]);
+}
+async function firebaseGet(path){
+  const res = await withTimeout(fetch(FIREBASE_URL+'/'+path+'.json'), 5000);
+  if(!res.ok) throw new Error('firebase get failed: '+res.status);
+  return await res.json();
+}
+async function firebaseSet(path, data){
+  const res = await withTimeout(fetch(FIREBASE_URL+'/'+path+'.json', {
+    method:'PUT',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(data)
+  }), 5000);
+  if(!res.ok) throw new Error('firebase set failed: '+res.status);
+  return true;
+}
+function todayStr(){
+  const d = new Date();
+  const pad = n=> n<10?'0'+n:''+n;
+  return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+}
+function dutyDatePath(dateStr){ return DUTY_PATH+'/'+dateStr; }
+function dutyWorkerPath(dateStr, worker){ return dutyDatePath(dateStr)+'/'+encodeURIComponent(worker); }
+
+const PERIODIC_PATH = 'onestop-periodic-duties';
+function periodicStatusPath(taskId){ return PERIODIC_PATH+'/status/'+taskId; }
+function periodicHistoryPath(taskId){ return PERIODIC_PATH+'/history/'+taskId; }
+function periodicOverridePath(taskId){ return PERIODIC_PATH+'/override/'+(taskId||''); }
+function periodicCustomPath(taskId){ return PERIODIC_PATH+'/custom/'+(taskId||''); }
+function periodicNotePath(taskId){ return PERIODIC_PATH+'/notes/'+(taskId||''); }
+
+// ---- Checklist workers (Triveni / Laxman) storage ----
+const CHECKLIST_PATH = 'onestop-checklist-duties';
+function clKey(w){ return encodeURIComponent(w); }
+function clStatusPath(w,id){ return CHECKLIST_PATH+'/status/'+clKey(w)+'/'+id; }
+function clCustomPath(w,id){ return CHECKLIST_PATH+'/custom/'+clKey(w)+(id?('/'+id):''); }
+function clOverridePath(w,id){ return CHECKLIST_PATH+'/override/'+clKey(w)+(id?('/'+id):''); }
+function clHistoryPath(w,id){ return CHECKLIST_PATH+'/history/'+clKey(w)+'/'+id; }
+function clNotePath(w,id){ return CHECKLIST_PATH+'/notes/'+clKey(w)+(id?('/'+id):''); }
+function fmtDate(d){
+  const pad = n=> n<10?'0'+n:''+n;
+  return pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear();
+}
+function fmtTime(ts){
+  const d = new Date(ts);
+  const pad = n=> n<10?'0'+n:''+n;
+  return pad(d.getHours())+':'+pad(d.getMinutes());
+}
+
+// local cache so a worker's own progress survives if the internet drops mid-shift
+async function localGet(key){
+  try{
+    if(typeof window.storage !== 'undefined' && window.storage){
+      const r = await withTimeout(window.storage.get(key, false), 4000);
+      if(r) return JSON.parse(r.value);
+    }
+  }catch(e){}
+  try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : null; }catch(e){ return null; }
+}
+async function localSet(key, obj){
+  const str = JSON.stringify(obj);
+  try{
+    if(typeof window.storage !== 'undefined' && window.storage){
+      await withTimeout(window.storage.set(key, str, false), 4000);
+    }
+  }catch(e){}
+  try{ localStorage.setItem(key, str); }catch(e){}
+}
+
+function setDutySyncStatus(ok){
+  const el = document.getElementById('dutySyncStatus');
+  if(el) el.textContent = ok ? '\u25cf సింక్ అయింది (Synced)' : '\u25cf ఆఫ్‌లైన్ \u2013 ఈ ఫోన్‌లో సేవ్ అయింది';
+  const el2 = document.getElementById('ownerSyncStatus');
+  if(el2) el2.textContent = ok ? '\u25cf ప్రతి 5 సెకన్లకు నవీకరిస్తుంది (live)' : '\u25cf ఆఫ్‌లైన్ \u2013 మళ్ళీ ప్రయత్నిస్తోంది\u2026';
+}
+
+async function saveDutyProgress(){
+  const dateStr = todayStr();
+  const payload = {day: state.day, tasks: state.tasks, updatedAt: Date.now()};
+  const key = 'duty-'+state.worker+'-'+dateStr;
+  localSet(key, payload);
+  try{
+    await firebaseSet(dutyWorkerPath(dateStr, state.worker), payload);
+    setDutySyncStatus(true);
+  }catch(e){
+    setDutySyncStatus(false);
+  }
+}
+
+// audit trail: exact time a worker checked/unchecked a daily task
+function dutyHistoryPath(dateStr, worker){ return 'onestop-duty-history/'+dateStr+'/'+encodeURIComponent(worker); }
+async function logDutyHistory(t){
+  const dateStr = todayStr();
+  const key = Date.now()+"-"+Math.floor(Math.random()*1000);
+  const entry = {task:t.task, done:t.done, timestamp:Date.now()};
+  try{ await firebaseSet(dutyHistoryPath(dateStr, state.worker)+'/'+key, entry); }catch(e){}
+}
+
+function renderWorkers(){
+  const g = document.getElementById('workerGrid');
+  g.innerHTML = "";
+  WORKERS.forEach(w=>{
+    const d = document.createElement('div');
+    d.className = "worker-card";
+    d.innerHTML = `<span class="emoji">${WORKER_EMOJI[w]}</span><span class="name">${displayName(w)}</span>${WORKER_ROLE[w]?`<span style="font-size:.68rem;color:#a58a2a;">${WORKER_ROLE[w]}</span>`:''}`;
+    d.onclick = ()=>chooseWorker(w);
+    g.appendChild(d);
+  });
+}
+renderWorkers();
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function hasRotation(w){
+  const s1 = JSON.stringify(SCHEDULE[w][1]);
+  const s2 = JSON.stringify(SCHEDULE[w][2]);
+  return s1 !== s2;
+}
+// Which schedule set applies today, worked out automatically from the calendar
+// so nobody has to remember or guess "was I on Day 1 or Day 2?".
+function autoDetectDay(){
+  const d = new Date();
+  const start = new Date(d.getFullYear(),0,0);
+  const dayOfYear = Math.floor((d - start)/86400000);
+  return (dayOfYear % 2 === 0) ? 2 : 1;
+}
+const ROTATION_LABEL = {1:"క్రమం A", 2:"క్రమం B"};
+
+// short instructional reminders shown at the top of a worker's checklist
+const WORKER_NOTES = {
+  "కృష్ణవేణి": "📝 గమనిక: మధ్యాహ్నం వంటగది పాత్రలు ఎవరు శుభ్రం చేస్తారో, వారే సాయంత్రం బాత్రూమ్‌లు కూడా శుభ్రం చేయాలి.",
+  "మానసా": "📝 గమనిక: మధ్యాహ్నం వంటగది పాత్రలు ఎవరు శుభ్రం చేస్తారో, వారే సాయంత్రం బాత్రూమ్‌లు కూడా శుభ్రం చేయాలి.",
+  "వెంకటేష్": "📝 గమనిక: ఉదయం డైనింగ్ టేబుల్స్ నేలను ఫినాయిల్‌తో తుడవాలి (మాప్ చేయాలి)."
+};
+
+function chooseWorker(w){
+  stopAllPolling();
+  state.worker = w;
+  document.getElementById('topTitle').textContent = "🧹 "+displayName(w)+" గారి డ్యూటీలు";
+  document.getElementById('backBtn').style.display='block';
+  document.getElementById('footerBar').style.display='none';
+  if(isChecklistWorker(w)){ openChecklistView(w); return; }
+  const auto = autoDetectDay();
+  chooseDay(auto);
+}
+
+function switchRotation(){
+  const other = state.day === 1 ? 2 : 1;
+  chooseDay(other, true);
+}
+
+async function chooseDay(d, isManualSwitch){
+  state.day = d;
+  state.tasks = SCHEDULE[state.worker][d].map(([time,task])=>({time,task,done:false}));
+  document.getElementById('topSub').textContent = "పనులు పూర్తి చేయండి";
+  const rotBar = document.getElementById('rotationBar');
+  if(hasRotation(state.worker)){
+    rotBar.style.display = 'flex';
+    document.getElementById('rotationLabel').textContent = ROTATION_LABEL[d];
+  } else {
+    rotBar.style.display = 'none';
+  }
+  const noteBar = document.getElementById('noteBar');
+  const note = WORKER_NOTES[state.worker];
+  if(note){
+    noteBar.style.display = 'flex';
+    noteBar.textContent = note;
+  } else {
+    noteBar.style.display = 'none';
+  }
+  renderTasks();
+  document.getElementById('footerBar').style.display='flex';
+  showScreen('screen-tasks');
+
+  const dateStr = todayStr();
+  const cacheKey = 'duty-'+state.worker+'-'+dateStr;
+  let restored = null;
+  try{
+    const remote = await firebaseGet(dutyWorkerPath(dateStr, state.worker));
+    setDutySyncStatus(true);
+    if(!isManualSwitch && remote && remote.day===d && Array.isArray(remote.tasks) && remote.tasks.length===state.tasks.length){
+      restored = remote.tasks;
+    }
+  }catch(e){
+    setDutySyncStatus(false);
+  }
+  if(!restored && !isManualSwitch){
+    const local = await localGet(cacheKey);
+    if(local && local.day===d && Array.isArray(local.tasks) && local.tasks.length===state.tasks.length){
+      restored = local.tasks;
+    }
+  }
+  if(restored){
+    state.tasks = restored;
+    renderTasks();
+  }
+}
+
+function goBack(){
+  if(document.getElementById('screen-owner').classList.contains('active')){
+    closeOwnerView();
+  } else if(document.getElementById('screen-checklist').classList.contains('active')){
+    closeChecklistView();
+  } else if(document.getElementById('screen-periodic').classList.contains('active')){
+    closePeriodicView();
+  } else if(document.getElementById('screen-history').classList.contains('active')){
+    closeHistoryView();
+  } else if(document.getElementById('screen-tasks').classList.contains('active')){
+    document.getElementById('footerBar').style.display='none';
+    document.getElementById('backBtn').style.display='none';
+    document.getElementById('topTitle').textContent="🧹 హోటల్ డ్యూటీ ట్రాకర్";
+    document.getElementById('topSub').textContent="మీ పేరు ఎంచుకోండి";
+    showScreen('screen-worker');
+  }
+}
+
+
+function renderTasks(){
+  const c = document.getElementById('taskContainer');
+  c.innerHTML = "";
+  const groups = {};
+  state.tasks.forEach((t,i)=>{
+    const s = shiftOf(t.time);
+    groups[s] = groups[s]||[];
+    groups[s].push(i);
+  });
+  ["morning","afternoon","evening","night"].forEach(s=>{
+    if(!groups[s]) return;
+    const block = document.createElement('div');
+    block.className = "shift-block";
+    block.innerHTML = `<div class="shift-title ${s}">${SHIFT_LABEL[s]}</div>`;
+    const list = document.createElement('div');
+    list.className = "task-list";
+    groups[s].forEach(i=>{
+      const t = state.tasks[i];
+      const row = document.createElement('div');
+      row.className = "task-row"+(t.done?" done":"");
+      row.innerHTML = `
+        <div class="task-emoji">${iconFor(t.task)}</div>
+        <div class="task-text">
+          <div class="task-name">${t.task}</div>
+          <div class="task-time">${t.time}</div>
+        </div>
+        <div class="check">${t.done?"✓":""}</div>`;
+      row.onclick = ()=>{ t.done = !t.done; renderTasks(); saveDutyProgress(); logDutyHistory(t); };
+      list.appendChild(row);
+      const nd = document.createElement('div');
+      const n = t.note;
+      nd.className = 'task-note'+(n&&n.text?' has':'');
+      nd.style.marginTop = '6px';
+      nd.innerHTML = (n&&n.text)
+        ? `📝 ${escNote(n.text)}${n.by?` <span class="note-by">— ${escNote(n.by)}</span>`:''}`
+        : '📝 కారణం / గమనిక చేర్చు (add reason / note)';
+      nd.onclick = (e)=>{ e.stopPropagation(); openNoteModal(String(i),'daily'); };
+      list.appendChild(nd);
+    });
+    block.appendChild(list);
+    c.appendChild(block);
+  });
+  const done = state.tasks.filter(t=>t.done).length;
+  const total = state.tasks.length;
+  document.getElementById('progressFill').style.width = (total?done/total*100:0)+"%";
+  document.getElementById('progressText').textContent = done+"/"+total;
+}
+
+function resetAll(){
+  state.tasks.forEach(t=>t.done=false);
+  renderTasks();
+  saveDutyProgress();
+}
+
+// ---- owner view: live status of all 4 workers ----
+let ownerPollTimer = null;
+
+function openOwnerView(){
+  stopAllPolling();
+  document.getElementById('backBtn').style.display = 'block';
+  document.getElementById('footerBar').style.display = 'none';
+  document.getElementById('topTitle').textContent = '👁️ ఈరోజు స్టేటస్ (Today)';
+  document.getElementById('topSub').textContent = 'అన్ని సిబ్బంది పురోగతి';
+  showScreen('screen-owner');
+  renderOwnerView();
+  if(ownerPollTimer) clearInterval(ownerPollTimer);
+  ownerPollTimer = setInterval(renderOwnerView, 5000);
+}
+function closeOwnerView(){
+  if(ownerPollTimer){ clearInterval(ownerPollTimer); ownerPollTimer = null; }
+  document.getElementById('backBtn').style.display = 'none';
+  document.getElementById('topTitle').textContent = '🧹 హోటల్ డ్యూటీ ట్రాకర్';
+  document.getElementById('topSub').textContent = 'మీ పేరు ఎంచుకోండి';
+  showScreen('screen-worker');
+}
+function timeAgo(ts){
+  if(!ts) return '\u2013';
+  const secs = Math.floor((Date.now()-ts)/1000);
+  if(secs<5) return 'ఇప్పుడే';
+  if(secs<60) return secs+' సె క్రితం';
+  const mins = Math.floor(secs/60);
+  if(mins<60) return mins+' ని క్రితం';
+  const hrs = Math.floor(mins/60);
+  return hrs+' గం క్రితం';
+}
+async function renderOwnerView(){
+  const dateStr = todayStr();
+  const list = document.getElementById('ownerList');
+  let data = null;
+  try{
+    data = await firebaseGet(dutyDatePath(dateStr));
+    setDutySyncStatus(true);
+  }catch(e){
+    setDutySyncStatus(false);
+  }
+  list.innerHTML = WORKERS.filter(w=>!isChecklistWorker(w)).map(w=>{
+    const rec = data && data[w];
+    if(!rec || !Array.isArray(rec.tasks)){
+      return `<div class="progress-wrap" style="flex-direction:column;align-items:stretch;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div style="font-weight:700;color:var(--navy);">${WORKER_EMOJI[w]||''} ${displayName(w)}</div>
+          <div style="font-size:.8rem;color:#999;">ఇంకా మొదలుపెట్టలేదు</div>
+        </div>
+      </div>`;
+    }
+    const done = rec.tasks.filter(t=>t.done).length;
+    const total = rec.tasks.length;
+    const pct = total ? Math.round(done/total*100) : 0;
+    return `<div class="progress-wrap" style="flex-direction:column;align-items:stretch;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <div style="font-weight:700;color:var(--navy);">${WORKER_EMOJI[w]||''} ${displayName(w)} <span style="font-weight:400;font-size:.8rem;color:#777;">\u00b7 ${ROTATION_LABEL[rec.day]||('రోజు '+rec.day)}</span></div>
+        <div style="font-weight:700;color:var(--navy);">${done}/${total}</div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;"></div></div>
+      <div style="font-size:.72rem;color:#999;margin-top:4px;">చివరిసారి నవీకరణ: ${timeAgo(rec.updatedAt)}</div>
+    </div>`;
+  }).join('');
+}
+
+// ---- Additional / periodic duties screen ----
+let periodicPollTimer = null;
+function openPeriodicView(){
+  stopAllPolling();
+  document.getElementById('backBtn').style.display = 'block';
+  document.getElementById('footerBar').style.display = 'none';
+  document.getElementById('topTitle').textContent = '📅 అదనపు విధులు';
+  document.getElementById('topSub').textContent = '15 రోజుల / వారం వారీ పనులు';
+  showScreen('screen-periodic');
+  renderPeriodicList();
+  if(periodicPollTimer) clearInterval(periodicPollTimer);
+  periodicPollTimer = setInterval(renderPeriodicList, 5000);
+}
+function closePeriodicView(){
+  if(periodicPollTimer){ clearInterval(periodicPollTimer); periodicPollTimer = null; }
+  const list = document.getElementById('periodicList');
+  if(list) delete list.dataset.loaded;
+  document.getElementById('backBtn').style.display = 'none';
+  document.getElementById('topTitle').textContent = '🧹 హోటల్ డ్యూటీ ట్రాకర్';
+  document.getElementById('topSub').textContent = 'మీ పేరు ఎంచుకోండి';
+  showScreen('screen-worker');
+}
+
+let periodicStatusCache = {};
+let pdOverrideCache = {};   // taskId -> {name,freq} edits to built-in additional duties
+let pdCustomCache = {};     // taskId -> {name,freq,createdAt} owner-added additional duties
+let pdNoteCache = {};       // taskId -> {text,at,by}
+
+// built-in additional duties (with any edits) + custom ones
+function pdEffectiveTasks(){
+  const base = PERIODIC_TASKS.map(d=>{
+    const ov = pdOverrideCache[d.id];
+    if(ov) return {id:d.id, icon:d.icon, name:(ov.name||d.name), freq:(ov.freq||d.freq), wdays:(ov.wdays||d.wdays||[]), edited:true};
+    return {id:d.id, icon:d.icon, name:d.name, freq:d.freq, wdays:(d.wdays||[])};
+  });
+  Object.keys(pdCustomCache).forEach(id=>{
+    const c = pdCustomCache[id];
+    if(c && c.name) base.push({id:id, icon:freqCfg(c.freq).emoji, freq:c.freq, wdays:(c.wdays||[]), name:c.name, custom:true});
+  });
+  return base;
+}
+function pdFindTask(id){ return pdEffectiveTasks().find(t=>t.id===id) || null; }
+async function renderPeriodicList(){
+  const list = document.getElementById('periodicList');
+  if(!list.dataset.loaded){ list.innerHTML = '<div class="hist-empty">లోడ్ అవుతోంది…</div>'; }
+  try{
+    periodicStatusCache = (await firebaseGet(PERIODIC_PATH+'/status')) || {};
+    pdOverrideCache = (await firebaseGet(PERIODIC_PATH+'/override')) || {};
+    pdCustomCache = (await firebaseGet(PERIODIC_PATH+'/custom')) || {};
+    pdNoteCache = (await firebaseGet(PERIODIC_PATH+'/notes')) || {};
+    setDutySyncStatus(true);
+  }catch(e){ setDutySyncStatus(false); }
+  list.dataset.loaded = '1';
+
+  const groups = {};
+  pdEffectiveTasks().forEach(task=>{ (groups[task.freq] = groups[task.freq] || []).push(task); });
+
+  let html = '';
+  FREQ_ORDER.forEach(f=>{
+    if(!groups[f]) return;
+    const cfg = freqCfg(f);
+    html += `<div class="pd-section-title">${cfg.emoji} ${cfg.label}</div>`;
+    html += groups[f].map(task=>{
+      const rec = periodicStatusCache[task.id];
+      const st = clStatus(cfg.days, rec, task.wdays);
+      const meta = rec && rec.lastDoneDate ? `చివరిసారి: ${fmtDate(new Date(rec.lastDoneDate+'T00:00:00'))} · ${rec.doneBy||''}` : 'ఇంకా రికార్డ్ లేదు';
+      const checked = cfg.days===1 ? (rec && rec.lastDoneDate===todayStr()) : (rec && (st.cls==='status-ok' || st.cls==='status-soon'));
+      const editedTag = task.edited ? ` <span style="font-size:.65rem;color:#a58a2a;">✏️ మార్చబడింది</span>` : '';
+      const delBtn = task.custom ? `<button onclick="event.stopPropagation();deleteCustomDuty('${task.id}','periodic')" style="border:1px solid #f0c9c4;border-radius:9px;padding:7px 12px;font-size:.8rem;font-weight:700;color:#c0392b;background:#fdf0ef;">🗑️</button>` : '';
+      return `<div class="pd-card">
+        <div class="pd-top">
+          <div class="pd-icon">${task.icon||'🧹'}</div>
+          <div style="flex:1;"><div class="pd-name">${task.name}${editedTag}</div><div class="pd-freq">${freqLine(task)}</div></div>
+        </div>
+        <div class="pd-status ${st.cls}">${st.label}</div>
+        <div class="pd-meta">${meta}</div>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <button onclick="event.stopPropagation();openEditDuty('${task.id}','periodic')" style="flex:1;border:1px solid var(--line);border-radius:9px;padding:8px 12px;font-size:.82rem;font-weight:700;color:var(--navy);background:#fff;">✏️ షెడ్యూల్ / పేరు మార్చు</button>
+          ${delBtn}
+        </div>
+        <div class="pd-check-row" onclick="openMarkDoneModal('${task.id}')">
+          <div class="pd-check ${checked?'checked':''}">${checked?'✓':''}</div>
+          <div class="pd-check-label">${checked ? 'పూర్తయింది — తేదీ మార్చాలంటే నొక్కండి' : 'పూర్తయిందిగా గుర్తించండి (తేదీ నమోదు చేయండి)'}</div>
+        </div>
+        ${noteRowHtml(task.id,'periodic')}
+      </div>`;
+    }).join('');
+  });
+  html += `<button class="btn btn-primary" style="width:100%;margin-top:14px;" onclick="openAddDuty('periodic')">➕ కొత్త విధి చేర్చండి</button>`;
+  list.innerHTML = html;
+}
+
+
+let currentPeriodicTaskId = null;
+function openMarkDoneModal(taskId){
+  currentPeriodicTaskId = taskId;
+  const task = pdFindTask(taskId);
+  document.getElementById('periodicModalTitle').textContent = '✅ '+task.name;
+  const rec = periodicStatusCache[taskId];
+  document.getElementById('periodicDateInput').value = rec && rec.lastDoneDate ? rec.lastDoneDate : todayStr();
+  const sel = document.getElementById('periodicWorkerSelect');
+  sel.innerHTML = WORKERS.map(w=>`<option value="${w}">${displayName(w)}</option>`).join('');
+  if(rec && rec.doneBy) sel.value = rec.doneBy;
+  document.getElementById('periodicClearBtn').style.display = rec ? 'block' : 'none';
+  updatePdNextHint();
+  document.getElementById('periodicModal').classList.add('active');
+}
+function closePeriodicModal(){
+  document.getElementById('periodicModal').classList.remove('active');
+  currentPeriodicTaskId = null;
+}
+async function savePeriodicDate(){
+  if(!currentPeriodicTaskId) return;
+  const dateVal = document.getElementById('periodicDateInput').value;
+  const worker = document.getElementById('periodicWorkerSelect').value;
+  if(!dateVal){ showToast('తేదీ ఎంచుకోండి'); return; }
+  const wasEdit = !!periodicStatusCache[currentPeriodicTaskId];
+  const payload = {lastDoneDate:dateVal, lastDoneAt:Date.now(), doneBy:worker};
+  try{
+    await firebaseSet(periodicStatusPath(currentPeriodicTaskId), payload);
+    const histKey = Date.now()+"-"+Math.floor(Math.random()*1000);
+    await firebaseSet(periodicHistoryPath(currentPeriodicTaskId)+'/'+histKey, {
+      date:dateVal, doneBy:worker, timestamp:Date.now(), action: wasEdit?'edited':'completed',
+      taskName: pdFindTask(currentPeriodicTaskId).name
+    });
+    setDutySyncStatus(true);
+  }catch(e){ setDutySyncStatus(false); }
+  closePeriodicModal();
+  showToast('సేవ్ అయింది ✅');
+  renderPeriodicList();
+}
+
+async function clearPeriodicDate(){
+  if(!currentPeriodicTaskId) return;
+  const task = pdFindTask(currentPeriodicTaskId);
+  try{
+    // PUT null deletes the node in Firebase RTDB → box goes back to unchecked
+    await firebaseSet(periodicStatusPath(currentPeriodicTaskId), null);
+    const histKey = Date.now()+"-"+Math.floor(Math.random()*1000);
+    await firebaseSet(periodicHistoryPath(currentPeriodicTaskId)+'/'+histKey, {
+      date: todayStr(), doneBy:'', timestamp:Date.now(), action:'unchecked',
+      taskName: task ? task.name : currentPeriodicTaskId
+    });
+    delete periodicStatusCache[currentPeriodicTaskId];
+    setDutySyncStatus(true);
+  }catch(e){ setDutySyncStatus(false); }
+  closePeriodicModal();
+  showToast('మార్క్ తీసివేయబడింది ↺');
+  renderPeriodicList();
+}
+// ================= Checklist workers (Triveni / Laxman) =================
+let clPollTimer = null;
+let clWorker = null;
+let clStatusCache = {};   // taskId -> {lastDoneDate,lastDoneAt,doneBy}
+let clCustomCache = {};   // taskId -> {name,freq,createdAt}
+let clOverrideCache = {}; // taskId -> {name,freq}  (edits to built-in duties)
+let clNoteCache = {};     // taskId -> {text,at,by}
+
+function openChecklistView(w){
+  stopAllPolling();
+  clWorker = w;
+  const role = WORKER_ROLE[w] ? ' ('+WORKER_ROLE[w]+')' : '';
+  document.getElementById('topTitle').textContent = '📋 '+displayName(w)+role+' విధులు';
+  document.getElementById('topSub').textContent = 'విధి పూర్తయ్యాక నొక్కి తేదీ నమోదు చేయండి';
+  document.getElementById('backBtn').style.display = 'block';
+  document.getElementById('footerBar').style.display = 'none';
+  showScreen('screen-checklist');
+  renderChecklist();
+  if(clPollTimer) clearInterval(clPollTimer);
+  clPollTimer = setInterval(renderChecklist, 5000);
+}
+function closeChecklistView(){
+  if(clPollTimer){ clearInterval(clPollTimer); clPollTimer = null; }
+  const list = document.getElementById('checklistList');
+  if(list) delete list.dataset.loaded;
+  document.getElementById('topTitle').textContent = '🧹 హోటల్ డ్యూటీ ట్రాకర్';
+  document.getElementById('topSub').textContent = 'మీ పేరు ఎంచుకోండి';
+  document.getElementById('backBtn').style.display = 'none';
+  showScreen('screen-worker');
+}
+
+// merge built-in duties (with any edits) + any custom duties the owner added
+function clDutiesFor(w){
+  const base = (CHECKLIST_DUTIES[w] || []).map(d=>{
+    const ov = clOverrideCache[d.id];
+    if(ov) return {id:d.id, icon:d.icon, name:(ov.name||d.name), freq:(ov.freq||d.freq), wdays:(ov.wdays||d.wdays||[]), edited:true};
+    return {id:d.id, icon:d.icon, name:d.name, freq:d.freq, wdays:(d.wdays||[])};
+  });
+  Object.keys(clCustomCache).forEach(id=>{
+    const c = clCustomCache[id];
+    if(c && c.name) base.push({id:id, icon:freqCfg(c.freq).emoji, freq:c.freq, wdays:(c.wdays||[]), name:c.name, custom:true});
+  });
+  return base;
+}
+
+function clStatus(days, rec, wdays){
+  const today = new Date(todayStr()+'T00:00:00');
+  if(days === 0){ // anytime
+    if(rec && rec.lastDoneDate) return {label:'✓ చివరిసారి: '+fmtDate(new Date(rec.lastDoneDate+'T00:00:00')), cls:'status-ok'};
+    return {label:'అవసరమైనప్పుడు', cls:'status-never'};
+  }
+  // ---- weekday-anchored (days === -1): due on fixed days of the week ----
+  if(days === -1){
+    const w = normWdays(wdays);
+    if(!w.length) return {label:'రోజులు ఎంచుకోండి ⚙️', cls:'status-never'};
+    if(!rec || !rec.lastDoneDate){
+      // never done: due on the next scheduled day counting from yesterday,
+      // so that a day scheduled for today reads as due today
+      const y = new Date(today.getFullYear(), today.getMonth(), today.getDate()-1);
+      const n = nextWeekdayDue(y, w);
+      const dd = Math.round((n - today)/86400000);
+      if(dd === 0) return {label:'ఈరోజు గడువు', cls:'status-due', next:n};
+      return {label:'ఇంకా చేయలేదు · తదుపరి: '+WDAY_SHORT[n.getDay()], cls:'status-never', next:n};
+    }
+    const lastW = new Date(rec.lastDoneDate+'T00:00:00');
+    const nextW = nextWeekdayDue(lastW, w);
+    const dW = Math.round((nextW - today)/86400000);
+    if(rec.lastDoneDate === todayStr()) return {label:'✓ ఈరోజు పూర్తయింది · తదుపరి: '+WDAY_SHORT[nextW.getDay()], cls:'status-ok', next:nextW};
+    if(dW < 0)  return {label:(-dW)+' రోజులు ఆలస్యం ⚠️', cls:'status-overdue', next:nextW};
+    if(dW === 0) return {label:'ఈరోజు గడువు ('+WDAY_FULL[nextW.getDay()]+')', cls:'status-due', next:nextW};
+    if(dW <= 2)  return {label:dW+' రోజుల్లో గడువు · '+WDAY_SHORT[nextW.getDay()], cls:'status-soon', next:nextW};
+    return {label:'తదుపరి: '+WDAY_SHORT[nextW.getDay()]+' · '+fmtDate(nextW), cls:'status-ok', next:nextW};
+  }
+  if(!rec || !rec.lastDoneDate) return {label:'ఇంకా చేయలేదు', cls:'status-never'};
+  const last = new Date(rec.lastDoneDate+'T00:00:00');
+  const next = new Date(last.getTime() + days*86400000);
+  if(days === 1){
+    if(rec.lastDoneDate === todayStr()) return {label:'✓ ఈరోజు పూర్తయింది', cls:'status-ok', next};
+    return {label:'ఈరోజు చేయాలి', cls:'status-due', next};
+  }
+  const diff = Math.round((next - today)/86400000);
+  if(diff < 0)  return {label:(-diff)+' రోజులు ఆలస్యం ⚠️', cls:'status-overdue', next};
+  if(diff === 0) return {label:'ఈరోజు గడువు', cls:'status-due', next};
+  if(diff <= 2)  return {label:diff+' రోజుల్లో గడువు', cls:'status-soon', next};
+  return {label:'తదుపరి: '+fmtDate(next), cls:'status-ok', next};
+}
+
+async function renderChecklist(){
+  const w = clWorker;
+  const list = document.getElementById('checklistList');
+  if(!list.dataset.loaded){ list.innerHTML = '<div class="hist-empty">లోడ్ అవుతోంది…</div>'; }
+  try{
+    const st = await firebaseGet(CHECKLIST_PATH+'/status/'+clKey(w));
+    clStatusCache = st || {};
+    const cu = await firebaseGet(CHECKLIST_PATH+'/custom/'+clKey(w));
+    clCustomCache = cu || {};
+    const ov = await firebaseGet(CHECKLIST_PATH+'/override/'+clKey(w));
+    clOverrideCache = ov || {};
+    const nt = await firebaseGet(CHECKLIST_PATH+'/notes/'+clKey(w));
+    clNoteCache = nt || {};
+    setDutySyncStatus(true);
+  }catch(e){ setDutySyncStatus(false); }
+  list.dataset.loaded = '1';
+
+  const duties = clDutiesFor(w);
+  const groups = {};
+  duties.forEach(t=>{ (groups[t.freq] = groups[t.freq] || []).push(t); });
+
+  let html = '';
+  FREQ_ORDER.forEach(f=>{
+    if(!groups[f]) return;
+    const cfg = freqCfg(f);
+    html += `<div class="pd-section-title">${cfg.emoji} ${cfg.label}</div>`;
+    html += groups[f].map(task=>{
+      const rec = clStatusCache[task.id];
+      const st = clStatus(cfg.days, rec, task.wdays);
+      const meta = rec && rec.lastDoneDate
+        ? `చివరిసారి: ${fmtDate(new Date(rec.lastDoneDate+'T00:00:00'))} · ${rec.doneBy||''}`
+        : 'ఇంకా రికార్డ్ లేదు';
+      const checked = cfg.days===1
+        ? (rec && rec.lastDoneDate===todayStr())
+        : (rec && (st.cls==='status-ok' || st.cls==='status-soon'));
+      const editedTag = task.edited ? ` <span style="font-size:.65rem;color:#a58a2a;">✏️ మార్చబడింది</span>` : '';
+      const delBtn = task.custom ? `<button onclick="event.stopPropagation();deleteCustomDuty('${task.id}','checklist')" style="border:1px solid #f0c9c4;border-radius:9px;padding:7px 12px;font-size:.8rem;font-weight:700;color:#c0392b;background:#fdf0ef;">🗑️</button>` : '';
+      return `<div class="pd-card">
+        <div class="pd-top">
+          <div class="pd-icon">${task.icon||'🧹'}</div>
+          <div style="flex:1;"><div class="pd-name">${task.name}${editedTag}</div><div class="pd-freq">${freqLine(task)}</div></div>
+        </div>
+        <div class="pd-status ${st.cls}">${st.label}</div>
+        <div class="pd-meta">${meta}</div>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <button onclick="event.stopPropagation();openEditDuty('${task.id}','checklist')" style="flex:1;border:1px solid var(--line);border-radius:9px;padding:8px 12px;font-size:.82rem;font-weight:700;color:var(--navy);background:#fff;">✏️ షెడ్యూల్ / పేరు మార్చు</button>
+          ${delBtn}
+        </div>
+        <div class="pd-check-row" onclick="openClModal('${task.id}')">
+          <div class="pd-check ${checked?'checked':''}">${checked?'✓':''}</div>
+          <div class="pd-check-label">${checked ? 'పూర్తయింది — తేదీ మార్చాలంటే నొక్కండి' : 'పూర్తయిందిగా గుర్తించండి (తేదీ నమోదు చేయండి)'}</div>
+        </div>
+        ${noteRowHtml(task.id,'checklist')}
+      </div>`;
+    }).join('');
+  });
+  list.innerHTML = html || '<div class="hist-empty">విధులు లేవు.</div>';
+}
+
+// find a duty object (built-in or custom) by id for the current worker
+function clFindTask(id){
+  return clDutiesFor(clWorker).find(t=>t.id===id) || null;
+}
+
+let currentClTaskId = null;
+function openClModal(taskId){
+  currentClTaskId = taskId;
+  const task = clFindTask(taskId);
+  if(!task) return;
+  document.getElementById('clModalTitle').textContent = '✅ '+task.name;
+  const rec = clStatusCache[taskId];
+  document.getElementById('clDateInput').value = rec && rec.lastDoneDate ? rec.lastDoneDate : todayStr();
+  const sel = document.getElementById('clWorkerSelect');
+  sel.innerHTML = WORKERS.map(x=>`<option value="${x}">${displayName(x)}</option>`).join('');
+  sel.value = (rec && rec.doneBy) ? rec.doneBy : clWorker;
+  document.getElementById('clClearBtn').style.display = rec ? 'block' : 'none';
+  updateClNextHint();
+  document.getElementById('clModal').classList.add('active');
+}
+function closeClModal(){
+  document.getElementById('clModal').classList.remove('active');
+  currentClTaskId = null;
+}
+// live "next due date" preview inside the modal — the heart of the biweekly ask
+function nextHintText(task, dateVal){
+  if(!task || !dateVal) return null;
+  const days = freqCfg(task.freq).days;
+  if(days === 0) return null;
+  const last = new Date(dateVal+'T00:00:00');
+  if(days === -1){
+    const n = nextWeekdayDue(last, task.wdays);
+    if(!n) return null;
+    return '➡️ తదుపరి గడువు: ' + WDAY_FULL[n.getDay()] + ' · ' + fmtDate(n);
+  }
+  return '➡️ తదుపరి గడువు తేదీ: ' + fmtDate(new Date(last.getTime() + days*86400000));
+}
+function updateClNextHint(){
+  const hint = document.getElementById('clNextHint');
+  const txt = nextHintText(clFindTask(currentClTaskId), document.getElementById('clDateInput').value);
+  if(!txt){ hint.style.display='none'; return; }
+  hint.textContent = txt;
+  hint.style.display = 'block';
+}
+function updatePdNextHint(){
+  const hint = document.getElementById('pdNextHint');
+  if(!hint) return;
+  const txt = nextHintText(pdFindTask(currentPeriodicTaskId), document.getElementById('periodicDateInput').value);
+  if(!txt){ hint.style.display='none'; return; }
+  hint.textContent = txt;
+  hint.style.display = 'block';
+}
+async function saveClDate(){
+  if(!currentClTaskId) return;
+  const dateVal = document.getElementById('clDateInput').value;
+  const worker = document.getElementById('clWorkerSelect').value;
+  if(!dateVal){ showToast('తేదీ ఎంచుకోండి'); return; }
+  const task = clFindTask(currentClTaskId);
+  const wasEdit = !!clStatusCache[currentClTaskId];
+  const payload = {lastDoneDate:dateVal, lastDoneAt:Date.now(), doneBy:worker};
+  try{
+    await firebaseSet(clStatusPath(clWorker, currentClTaskId), payload);
+    const histKey = Date.now()+'-'+Math.floor(Math.random()*1000);
+    await firebaseSet(clHistoryPath(clWorker, currentClTaskId)+'/'+histKey, {
+      date:dateVal, doneBy:worker, timestamp:Date.now(), action: wasEdit?'edited':'completed',
+      taskName: task ? task.name : currentClTaskId
+    });
+    clStatusCache[currentClTaskId] = payload;
+    setDutySyncStatus(true);
+  }catch(e){ setDutySyncStatus(false); }
+  closeClModal();
+  showToast('సేవ్ అయింది ✅');
+  renderChecklist();
+}
+async function clearClDate(){
+  if(!currentClTaskId) return;
+  const task = clFindTask(currentClTaskId);
+  try{
+    await firebaseSet(clStatusPath(clWorker, currentClTaskId), null);
+    const histKey = Date.now()+'-'+Math.floor(Math.random()*1000);
+    await firebaseSet(clHistoryPath(clWorker, currentClTaskId)+'/'+histKey, {
+      date:todayStr(), doneBy:'', timestamp:Date.now(), action:'unchecked',
+      taskName: task ? task.name : currentClTaskId
+    });
+    delete clStatusCache[currentClTaskId];
+    setDutySyncStatus(true);
+  }catch(e){ setDutySyncStatus(false); }
+  closeClModal();
+  showToast('మార్క్ తీసివేయబడింది ↺');
+  renderChecklist();
+}
+
+// ---- add / delete custom duties (manual frequency entry) ----
+// ---- add / edit / delete duties — shared by the per-worker checklist and the
+// ---- additional-duties (periodic) screen. dutyEditCtx selects which one. ----
+let dutyEditCtx = 'checklist';
+function escNote(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function noteRowHtml(taskId, ctx){
+  const cache = ctx==='periodic' ? pdNoteCache : clNoteCache;
+  const n = cache[taskId];
+  if(n && n.text){
+    return `<div class="task-note has" onclick="openNoteModal('${taskId}','${ctx}')">📝 ${escNote(n.text)}${n.by?` <span class="note-by">— ${escNote(n.by)}</span>`:''}</div>`;
+  }
+  return `<div class="task-note" onclick="openNoteModal('${taskId}','${ctx}')">📝 కారణం / గమనిక చేర్చు (add reason / note)</div>`;
+}
+function dctx(ctx){
+  ctx = ctx || dutyEditCtx;
+  if(ctx === 'periodic'){
+    return {
+      find: pdFindTask,
+      isCustom: id=> !!pdCustomCache[id],
+      customPath: id=> periodicCustomPath(id),
+      overridePath: id=> periodicOverridePath(id),
+      statusPath: id=> periodicStatusPath(id),
+      customCache: pdCustomCache,
+      overrideCache: pdOverrideCache,
+      statusCache: periodicStatusCache,
+      notePath: id=> periodicNotePath(id),
+      noteCache: pdNoteCache,
+      rerender: renderPeriodicList
+    };
+  }
+  return {
+    find: clFindTask,
+    isCustom: id=> !!clCustomCache[id],
+    customPath: id=> clCustomPath(clWorker, id),
+    overridePath: id=> clOverridePath(clWorker, id),
+    statusPath: id=> clStatusPath(clWorker, id),
+    customCache: clCustomCache,
+    overrideCache: clOverrideCache,
+    statusCache: clStatusCache,
+    notePath: id=> clNotePath(clWorker, id),
+    noteCache: clNoteCache,
+    rerender: renderChecklist
+  };
+}
+
+// ---- English → Telugu translation (for duties typed in English) ----
+const TELUGU_RE = /[\u0C00-\u0C7F]/;      // any Telugu character
+const LATIN_RE  = /[A-Za-z]/;             // any English letter
+async function translateToTelugu(text){
+  const q = (text || '').trim();
+  if(!q) return null;
+  // 1) Google's public gtx endpoint (best Telugu quality)
+  try{
+    const r = await withTimeout(fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=te&dt=t&q='+encodeURIComponent(q)), 6000);
+    if(r.ok){
+      const d = await r.json();
+      if(Array.isArray(d) && Array.isArray(d[0])){
+        const out = d[0].map(seg=>seg && seg[0] ? seg[0] : '').join('').trim();
+        if(out && TELUGU_RE.test(out)) return out;
+      }
+    }
+  }catch(e){}
+  // 2) MyMemory fallback
+  try{
+    const r = await withTimeout(fetch('https://api.mymemory.translated.net/get?q='+encodeURIComponent(q)+'&langpair=en|te'), 6000);
+    if(r.ok){
+      const d = await r.json();
+      const out = d && d.responseData && (d.responseData.translatedText || '').trim();
+      if(out && TELUGU_RE.test(out)) return out;
+    }
+  }catch(e){}
+  return null;
+}
+// ---- English → Telugu for PEOPLE'S NAMES (phonetic transliteration) ----
+// Names should be spelled by sound (Ravi → రవి), not translated by meaning,
+// so this uses Google Input Tools transliteration first, then falls back to
+// the general translate endpoint if that is unreachable.
+async function transliterateName(text){
+  const q = (text || '').trim();
+  if(!q) return null;
+  try{
+    const url = 'https://inputtools.google.com/request?text='+encodeURIComponent(q)
+              + '&itc=te-t-i0-und&num=1&cp=0&cs=1&ie=utf-8&oe=utf-8';
+    const r = await withTimeout(fetch(url), 6000);
+    if(r.ok){
+      const d = await r.json();
+      if(d && d[0]==='SUCCESS' && d[1] && d[1][0] && Array.isArray(d[1][0][1]) && d[1][0][1][0]){
+        const out = (d[1][0][1][0] || '').trim();
+        if(out && TELUGU_RE.test(out)) return out;
+      }
+    }
+  }catch(e){}
+  return await translateToTelugu(q);   // fallback
+}
+
+// manual translate button next to a name field
+async function translateField(inputId, statusId){
+  const inp = document.getElementById(inputId);
+  const status = document.getElementById(statusId);
+  const txt = (inp.value || '').trim();
+  if(!txt){ if(status) status.textContent = 'ముందు పేరు రాయండి'; return; }
+  if(!LATIN_RE.test(txt)){ if(status) status.textContent = '✓ ఇది ఇప్పటికే తెలుగులో ఉంది'; return; }
+  if(status) status.textContent = 'అనువదిస్తోంది…';
+  const tr = await translateToTelugu(txt);
+  if(tr){ inp.value = tr; if(status) status.textContent = '✓ తెలుగులోకి మార్చబడింది'; }
+  else { if(status) status.textContent = '⚠️ అనువాదం విఫలమైంది — ఇంటర్నెట్ చూడండి'; }
+}
+
+// ---- task note / reason ----
+// contexts: 'checklist' & 'periodic' → saved in Firebase via dctx;
+//           'daily' → saved inline on the shift task (state.tasks[index].note)
+let noteCtx = 'checklist';
+let currentNoteId = null;
+function openNoteModal(taskId, ctx){
+  noteCtx = ctx || 'checklist';
+  currentNoteId = taskId;
+  let rec = null;
+  if(noteCtx === 'daily'){ const t = state.tasks[Number(taskId)]; rec = t && t.note; }
+  else { rec = dctx(noteCtx).noteCache[taskId]; }
+  document.getElementById('noteText').value = rec && rec.text ? rec.text : '';
+  document.getElementById('noteTrStatus').textContent = '';
+  const sel = document.getElementById('noteBy');
+  sel.innerHTML = WORKERS.map(x=>`<option value="${x}">${displayName(x)}</option>`).join('');
+  sel.value = (rec && rec.by) ? rec.by : (state.worker || WORKERS[0]);
+  document.getElementById('noteClearBtn').style.display = (rec && rec.text) ? 'block' : 'none';
+  document.getElementById('noteModal').classList.add('active');
+}
+function closeNoteModal(){ document.getElementById('noteModal').classList.remove('active'); currentNoteId=null; }
+async function saveNote(){
+  if(currentNoteId===null) return;
+  const text = document.getElementById('noteText').value.trim();
+  const by = document.getElementById('noteBy').value;
+  if(!text){ showToast('గమనిక రాయండి లేదా రద్దు నొక్కండి'); return; }
+  const rec = {text, by, at:Date.now()};
+  if(noteCtx === 'daily'){
+    const t = state.tasks[Number(currentNoteId)];
+    if(t){ t.note = rec; }
+    closeNoteModal();
+    renderTasks();
+    saveDutyProgress();
+    showToast('గమనిక సేవ్ అయింది ✅');
+    return;
+  }
+  const d = dctx(noteCtx);
+  try{
+    await firebaseSet(d.notePath(currentNoteId), rec);
+    d.noteCache[currentNoteId] = rec;
+    setDutySyncStatus(true);
+  }catch(e){ setDutySyncStatus(false); showToast('సేవ్ కాలేదు — మళ్ళీ ప్రయత్నించండి'); return; }
+  const rerender = d.rerender;
+  closeNoteModal();
+  showToast('గమనిక సేవ్ అయింది ✅');
+  rerender();
+}
+async function clearNote(){
+  if(currentNoteId===null) return;
+  if(noteCtx === 'daily'){
+    const t = state.tasks[Number(currentNoteId)];
+    if(t){ delete t.note; }
+    closeNoteModal();
+    renderTasks();
+    saveDutyProgress();
+    showToast('గమనిక తీసివేయబడింది ↺');
+    return;
+  }
+  const d = dctx(noteCtx);
+  try{
+    await firebaseSet(d.notePath(currentNoteId), null);
+    delete d.noteCache[currentNoteId];
+    setDutySyncStatus(true);
+  }catch(e){ setDutySyncStatus(false); }
+  const rerender = d.rerender;
+  closeNoteModal();
+  showToast('గమనిక తీసివేయబడింది ↺');
+  rerender();
+}
+
+// ---- weekday picker shared by the add + edit duty modals ----
+let wdaySel = {add:[], edit:[]};
+function renderWdayChips(prefix){
+  const sel = wdaySel[prefix] || [];
+  document.getElementById(prefix+'WdaysRow').innerHTML = WDAY_SHORT.map((lbl,n)=>
+    `<div class="wd-chip${sel.indexOf(n)>=0?' on':''}" onclick="toggleWday('${prefix}',${n})">${lbl}</div>`
+  ).join('');
+}
+function toggleWday(prefix, n){
+  const sel = wdaySel[prefix] || (wdaySel[prefix]=[]);
+  const i = sel.indexOf(n);
+  if(i>=0) sel.splice(i,1); else sel.push(n);
+  wdaySel[prefix] = normWdays(sel);
+  renderWdayChips(prefix);
+}
+function onFreqSelChange(prefix){
+  const f = document.getElementById(prefix+'DutyFreq').value;
+  document.getElementById(prefix+'WdaysWrap').style.display = (f==='weekdays') ? 'block' : 'none';
+  if(f==='weekdays') renderWdayChips(prefix);
+}
+
+function openAddDuty(ctx){
+  dutyEditCtx = ctx || 'checklist';
+  document.getElementById('addDutyName').value = '';
+  wdaySel.add = [];
+  document.getElementById('addDutyFreq').innerHTML = freqOptionsHtml('daily');
+  onFreqSelChange('add');
+  var _ats = document.getElementById('addTrStatus'); if(_ats) _ats.textContent = '';
+  document.getElementById('addDutyModal').classList.add('active');
+}
+function closeAddDuty(){ document.getElementById('addDutyModal').classList.remove('active'); }
+async function saveAddDuty(){
+  let name = document.getElementById('addDutyName').value.trim();
+  const freq = document.getElementById('addDutyFreq').value;
+  if(!name){ showToast('విధి పేరు రాయండి'); return; }
+  if(freq==='weekdays' && !wdaySel.add.length){ showToast('కనీసం ఒక రోజు ఎంచుకోండి'); return; }
+  // if typed in English, translate to Telugu automatically before saving
+  if(LATIN_RE.test(name)){
+    showToast('తెలుగులోకి అనువదిస్తోంది…');
+    const tr = await translateToTelugu(name);
+    if(tr) name = tr;
+  }
+  const d = dctx();
+  const id = 'c'+Date.now()+Math.floor(Math.random()*100);
+  const rec = {name, freq, createdAt:Date.now()};
+  if(freq==='weekdays') rec.wdays = normWdays(wdaySel.add);
+  try{
+    await firebaseSet(d.customPath(id), rec);
+    d.customCache[id] = rec;
+    setDutySyncStatus(true);
+  }catch(e){ setDutySyncStatus(false); showToast('సేవ్ కాలేదు — మళ్ళీ ప్రయత్నించండి'); return; }
+  closeAddDuty();
+  showToast('విధి చేర్చబడింది ✅');
+  d.rerender();
+}
+async function deleteCustomDuty(id, ctx){
+  const d = dctx(ctx);
+  if(!confirm('ఈ విధిని తీసివేయాలా?')) return;
+  try{
+    await firebaseSet(d.customPath(id), null);
+    await firebaseSet(d.statusPath(id), null);
+    delete d.customCache[id];
+    delete d.statusCache[id];
+    setDutySyncStatus(true);
+  }catch(e){ setDutySyncStatus(false); }
+  showToast('తీసివేయబడింది ↺');
+  d.rerender();
+}
+
+// ---- edit an existing duty (name + frequency), built-in or custom ----
+let currentEditId = null;
+function openEditDuty(id, ctx){
+  dutyEditCtx = ctx || 'checklist';
+  const task = dctx().find(id);
+  if(!task) return;
+  currentEditId = id;
+  document.getElementById('editDutyName').value = task.name;
+  document.getElementById('editDutyFreq').innerHTML = freqOptionsHtml(task.freq);
+  wdaySel.edit = normWdays(task.wdays);
+  onFreqSelChange('edit');
+  document.getElementById('editResetBtn').style.display = (task.edited && !task.custom) ? 'block' : 'none';
+  var _ets = document.getElementById('editTrStatus'); if(_ets) _ets.textContent = '';
+  document.getElementById('editDeleteBtn').style.display = task.custom ? 'block' : 'none';
+  document.getElementById('editDutyModal').classList.add('active');
+}
+function closeEditDuty(){ document.getElementById('editDutyModal').classList.remove('active'); currentEditId=null; }
+async function saveEditDuty(){
+  if(!currentEditId) return;
+  const name = document.getElementById('editDutyName').value.trim();
+  const freq = document.getElementById('editDutyFreq').value;
+  if(!name){ showToast('విధి పేరు రాయండి'); return; }
+  if(freq==='weekdays' && !wdaySel.edit.length){ showToast('కనీసం ఒక రోజు ఎంచుకోండి'); return; }
+  const wd = freq==='weekdays' ? normWdays(wdaySel.edit) : null;
+  const d = dctx();
+  const isCustom = d.isCustom(currentEditId);
+  try{
+    if(isCustom){
+      const rec = Object.assign({}, d.customCache[currentEditId], {name, freq});
+      if(wd) rec.wdays = wd; else delete rec.wdays;
+      await firebaseSet(d.customPath(currentEditId), rec);
+      d.customCache[currentEditId] = rec;
+    } else {
+      const rec = {name, freq};
+      if(wd) rec.wdays = wd;
+      await firebaseSet(d.overridePath(currentEditId), rec);
+      d.overrideCache[currentEditId] = rec;
+    }
+    setDutySyncStatus(true);
+  }catch(e){ setDutySyncStatus(false); showToast('సేవ్ కాలేదు — మళ్ళీ ప్రయత్నించండి'); return; }
+  const rerender = d.rerender;
+  closeEditDuty();
+  showToast('మార్పులు సేవ్ అయ్యాయి ✅');
+  rerender();
+}
+async function resetDutyToDefault(){
+  if(!currentEditId) return;
+  const d = dctx();
+  try{
+    await firebaseSet(d.overridePath(currentEditId), null);
+    delete d.overrideCache[currentEditId];
+    setDutySyncStatus(true);
+  }catch(e){ setDutySyncStatus(false); }
+  const rerender = d.rerender;
+  closeEditDuty();
+  showToast('డిఫాల్ట్‌కు మార్చబడింది ↺');
+  rerender();
+}
+function deleteFromEdit(){
+  const id = currentEditId;
+  const ctx = dutyEditCtx;
+  closeEditDuty();
+  if(id) deleteCustomDuty(id, ctx);
+}
+
+let histTab = 'daily';
+function setHistTab(tab){
+  histTab = tab;
+  document.getElementById('histTabDaily').classList.toggle('active', tab==='daily');
+  document.getElementById('histTabPeriodic').classList.toggle('active', tab==='periodic');
+  document.getElementById('histDatePick').style.display = tab==='daily' ? 'block' : 'none';
+  const listEl = document.getElementById('historyList');
+  if(listEl) delete listEl.dataset.loaded;
+  renderHistory();
+}
+let historyPollTimer = null;
+function openHistoryView(){
+  stopAllPolling();
+  document.getElementById('backBtn').style.display = 'block';
+  document.getElementById('footerBar').style.display = 'none';
+  document.getElementById('topTitle').textContent = '🕘 హిస్టరీ';
+  document.getElementById('topSub').textContent = 'ఎప్పుడు, ఎవరు, ఏమి చేశారు';
+  document.getElementById('histDatePick').value = todayStr();
+  histTab = 'daily';
+  document.getElementById('histTabDaily').classList.add('active');
+  document.getElementById('histTabPeriodic').classList.remove('active');
+  document.getElementById('histDatePick').style.display = 'block';
+  showScreen('screen-history');
+  renderHistory();
+  if(historyPollTimer) clearInterval(historyPollTimer);
+  historyPollTimer = setInterval(renderHistory, 5000);
+}
+function closeHistoryView(){
+  if(historyPollTimer){ clearInterval(historyPollTimer); historyPollTimer = null; }
+  const listEl = document.getElementById('historyList');
+  if(listEl) delete listEl.dataset.loaded;
+  document.getElementById('backBtn').style.display = 'none';
+  document.getElementById('topTitle').textContent = '🧹 హోటల్ డ్యూటీ ట్రాకర్';
+  document.getElementById('topSub').textContent = 'మీ పేరు ఎంచుకోండి';
+  showScreen('screen-worker');
+}
+async function renderHistory(){
+  const listEl = document.getElementById('historyList');
+  if(!listEl.dataset.loaded){ listEl.innerHTML = '<div class="hist-empty">లోడ్ అవుతోంది…</div>'; }
+  let entries = [];
+  if(histTab === 'daily'){
+    const dateStr = document.getElementById('histDatePick').value || todayStr();
+    let data = null;
+    try{ data = await firebaseGet('onestop-duty-history/'+dateStr); setDutySyncStatus(true); }
+    catch(e){ setDutySyncStatus(false); }
+    if(data){
+      Object.keys(data).forEach(worker=>{
+        Object.values(data[worker]||{}).forEach(e=>{
+          entries.push({worker, task:e.task, done:e.done, timestamp:e.timestamp});
+        });
+      });
+    }
+  } else {
+    let data = null;
+    try{ data = await firebaseGet(PERIODIC_PATH+'/history'); setDutySyncStatus(true); }
+    catch(e){ setDutySyncStatus(false); }
+    if(data){
+      Object.values(data).forEach(taskHist=>{
+        Object.values(taskHist||{}).forEach(e=>{
+          entries.push({worker:e.doneBy, task:e.taskName, action:e.action, date:e.date, timestamp:e.timestamp});
+        });
+      });
+    }
+  }
+  entries.sort((a,b)=>b.timestamp-a.timestamp);
+  listEl.dataset.loaded = '1';
+  if(!entries.length){
+    listEl.innerHTML = '<div class="hist-empty">ఈ రోజుకు రికార్డులు లేవు</div>';
+    return;
+  }
+  listEl.innerHTML = entries.slice(0,100).map(e=>{
+    if(histTab === 'daily'){
+      return `<div class="hist-row ${e.done?'':'undone'}">
+        <div class="hist-top"><span>${displayName(e.worker)}</span><span>${fmtTime(e.timestamp)}</span></div>
+        <div class="hist-task">${e.task} ${e.done ? '→ ✅ పూర్తయింది' : '→ ↺ తీసివేయబడింది'}</div>
+        <div class="hist-time">${new Date(e.timestamp).toLocaleString('te-IN')}</div>
+      </div>`;
+    } else {
+      const actLabel = e.action==='edited' ? '✏️ తేదీ మార్చారు'
+                     : (e.action==='unchecked' ? '↺ మార్క్ తీసివేయబడింది' : '✅ పూర్తయింది');
+      return `<div class="hist-row ${e.action==='unchecked'?'undone':''}">
+        <div class="hist-top"><span>${displayName(e.worker||'')}</span><span>${fmtTime(e.timestamp)}</span></div>
+        <div class="hist-task">${e.task} → ${actLabel} (${e.date})</div>
+        <div class="hist-time">${new Date(e.timestamp).toLocaleString('te-IN')}</div>
+      </div>`;
+    }
+  }).join('');
+}
+
+// ================= NOTIFICATIONS: శుభ్రత పనుల రిమైండర్ =================
+const NOTIF_PREF_KEY = 'duty-notif-enabled';
+const NOTIF_LAST_KEY = 'duty-notif-last-date';
+
+function notifSupported(){ return typeof Notification !== 'undefined'; }
+function notifEnabled(){
+  return notifSupported() && Notification.permission === 'granted'
+         && localStorage.getItem(NOTIF_PREF_KEY) === '1';
+}
+function updateNotifBtn(){
+  const b = document.getElementById('notifBtn');
+  if(b) b.textContent = notifEnabled() ? '🔔' : '🔕';
+}
+async function toggleNotifications(){
+  if(!notifSupported()){
+    showToast('నోటిఫికేషన్ కోసం యాప్‌ను హోమ్ స్క్రీన్‌కు యాడ్ చేయండి (Share → Add to Home Screen)');
+    return;
+  }
+  if(notifEnabled()){
+    localStorage.setItem(NOTIF_PREF_KEY, '0');
+    updateNotifBtn();
+    showToast('నోటిఫికేషన్లు ఆఫ్ 🔕');
+    return;
+  }
+  let perm = Notification.permission;
+  if(perm !== 'granted'){
+    try{ perm = await Notification.requestPermission(); }catch(e){ perm = 'denied'; }
+  }
+  if(perm === 'granted'){
+    localStorage.setItem(NOTIF_PREF_KEY, '1');
+    updateNotifBtn();
+    showToast('నోటిఫికేషన్లు ఆన్ ✅ — గడువు వచ్చిన శుభ్రత పనులు గుర్తుచేస్తాం');
+    checkDueAndNotify(true);
+  } else {
+    showToast('నోటిఫికేషన్ అనుమతి ఇవ్వలేదు ❌ — సెట్టింగ్స్‌లో అనుమతించండి');
+  }
+}
+
+// which additional duties are due / overdue / never done right now
+async function getDueTasks(){
+  let data = null;
+  try{ data = await firebaseGet(PERIODIC_PATH+'/status'); }
+  catch(e){ return null; }
+  const due = [];
+  pdEffectiveTasks().forEach(t=>{
+    const days = freqCfg(t.freq).days;
+    if(days === 0) return; // anytime duties never become "due"
+    const st = clStatus(days, data && data[t.id], t.wdays);
+    if(st.cls === 'status-due' || st.cls === 'status-overdue' || st.cls === 'status-never'){
+      due.push({task:t, st:st});
+    }
+  });
+  // overdue first
+  const rank = {'status-overdue':0, 'status-due':1, 'status-never':2};
+  due.sort((a,b)=> rank[a.st.cls] - rank[b.st.cls]);
+  return due;
+}
+
+function renderDueBanner(due){ /* banner removed — notification only */ }
+function updateHomeBadge(count){ /* badge removed */ }
+
+async function checkDueAndNotify(force){
+  if(!notifEnabled()) return;
+  const due = await getDueTasks();
+  if(!due || !due.length) return;
+  const today = todayStr();
+  if(!force && localStorage.getItem(NOTIF_LAST_KEY) === today) return;
+  localStorage.setItem(NOTIF_LAST_KEY, today);
+  const names = due.slice(0,4).map(d=>d.task.name).join(' • ');
+  try{
+    new Notification('🧹 ఈరోజు శుభ్రత పనులు ('+due.length+')', {
+      body: names + (due.length > 4 ? ' …' : ''),
+      tag: 'duty-due-'+today
+    });
+  }catch(e){}
+}
+
+loadNameOverrides();
+updateNotifBtn();
+checkDueAndNotify(false);
+setInterval(()=>checkDueAndNotify(false), 30*60*1000);
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState === 'visible') checkDueAndNotify(false);
+});
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(()=>t.style.display='none', 4000);
+}
+
+function openSettings(){
+  document.getElementById('settingsModal').classList.add('active');
+  window.storage?.get('owner-phone').then(r=>{
+    if(r) document.getElementById('ownerPhone').value = r.value;
+  }).catch(()=>{});
+}
+function closeSettings(){ document.getElementById('settingsModal').classList.remove('active'); }
+async function saveSettings(){
+  const v = document.getElementById('ownerPhone').value.trim();
+  try{ await window.storage.set('owner-phone', v); }catch(e){}
+  closeSettings();
+  showToast("సేవ్ అయింది ✅");
+}
+
+// ================= Edit worker names =================
+function escAttr(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;'); }
+function openNamesModal(){
+  closeSettings();
+  const box = document.getElementById('namesList');
+  box.innerHTML = WORKERS.map((w,i)=>`
+    <div style="border:1px solid var(--line);border-radius:12px;padding:10px 10px 8px;margin-bottom:10px;">
+      <div style="font-size:.72rem;color:#a58a2a;margin-bottom:5px;">${WORKER_EMOJI[w]||''} అసలు పేరు: ${w}${WORKER_ROLE[w]?' · '+WORKER_ROLE[w]:''}</div>
+      <input type="text" id="nm_${i}" data-key="${encodeURIComponent(w)}" value="${escAttr(displayName(w))}"
+        placeholder="పేరు (English or Telugu)"
+        style="width:100%;padding:11px;font-size:1rem;border:2px solid var(--line);border-radius:9px;box-sizing:border-box;margin:0;">
+      <div style="display:flex;gap:8px;margin-top:7px;align-items:center;flex-wrap:wrap;">
+        <button type="button" onclick="translateNameField(${i})" style="border:1px solid #cdd6e6;border-radius:9px;padding:7px 11px;font-size:.78rem;font-weight:700;color:#1c3363;background:#eef3fb;">🌐 తెలుగులోకి</button>
+        <button type="button" onclick="resetNameField(${i})" style="border:1px solid #e0cfcf;border-radius:9px;padding:7px 11px;font-size:.78rem;font-weight:700;color:#8a4a2a;background:#fbf1ea;">↺ అసలు పేరు</button>
+        <span id="nmStatus_${i}" style="font-size:.72rem;color:#888;"></span>
+      </div>
+    </div>`).join('');
+  document.getElementById('namesModal').classList.add('active');
+}
+function closeNamesModal(){ document.getElementById('namesModal').classList.remove('active'); }
+async function translateNameField(i){
+  const inp = document.getElementById('nm_'+i);
+  const status = document.getElementById('nmStatus_'+i);
+  const txt = (inp.value || '').trim();
+  if(!txt){ if(status) status.textContent = 'ముందు పేరు రాయండి'; return; }
+  if(!LATIN_RE.test(txt)){ if(status) status.textContent = '✓ ఇది ఇప్పటికే తెలుగులో ఉంది'; return; }
+  if(status) status.textContent = 'అనువదిస్తోంది…';
+  const tr = await transliterateName(txt);
+  if(tr){ inp.value = tr; if(status) status.textContent = '✓ తెలుగులోకి మార్చబడింది — సరిచూసి మార్చవచ్చు'; }
+  else { if(status) status.textContent = '⚠️ విఫలమైంది — తెలుగులో టైప్ చేయవచ్చు'; }
+}
+function resetNameField(i){
+  const inp = document.getElementById('nm_'+i);
+  const key = decodeURIComponent(inp.getAttribute('data-key'));
+  inp.value = key;
+  const st = document.getElementById('nmStatus_'+i); if(st) st.textContent = '';
+}
+async function saveNames(){
+  const inputs = document.querySelectorAll('#namesList input[data-key]');
+  const map = {};
+  inputs.forEach(inp=>{
+    const key = decodeURIComponent(inp.getAttribute('data-key'));
+    const val = (inp.value || '').trim();
+    if(val && val !== key) map[key] = val;   // store only genuine changes
+  });
+  nameOverrides = map;
+  try{
+    await firebaseSet(NAMES_PATH, Object.keys(map).length ? map : null);
+    setDutySyncStatus(true);
+  }catch(e){
+    setDutySyncStatus(false);
+    showToast('సేవ్ కాలేదు — ఇంటర్నెట్ చూసి మళ్ళీ ప్రయత్నించండి');
+  }
+  localSet(NAMES_CACHE_KEY, map);
+  renderWorkers();
+  closeNamesModal();
+  showToast('పేర్లు సేవ్ అయ్యాయి ✅');
+}
+
+</script>
+</body>
+</html>
