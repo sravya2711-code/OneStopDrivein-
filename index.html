@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0E2230">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="OneStop">
+<title>OneStop DriveIn — Home</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0E2230; --ink2:#17303F; --slate:#5C7280; --mute:#8497A1;
+  --field:#EDF1F3; --card:#FFFFFF; --line:#DCE5E9; --bg:#F2F6F7;
+  --in:#0B6E4F; --out:#A32C1E; --hall:#8C5A12; --gold:#C9A227;
+  --fd:'Bricolage Grotesque',system-ui,sans-serif;
+  --fb:system-ui,-apple-system,'Segoe UI',sans-serif;
+  --fn:'IBM Plex Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--fb);font-size:15px;line-height:1.45;
+  -webkit-font-smoothing:antialiased;padding-bottom:calc(28px + env(safe-area-inset-bottom))}
+button,input{font-family:inherit;font-size:16px;color:inherit}
+button{cursor:pointer;border:0;background:none;padding:0;color:inherit;touch-action:manipulation}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+/* ---------- header ---------- */
+header{background:var(--ink);color:#fff;padding:calc(14px + env(safe-area-inset-top)) 16px 20px;
+  border-radius:0 0 20px 20px;position:relative;overflow:hidden;text-align:center}
+header::after{content:"";position:absolute;inset:auto 0 0 0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(201,162,39,.55),transparent)}
+.brandbox{display:inline-block;padding:9px 20px 8px;border-radius:14px;
+  background:linear-gradient(180deg,rgba(201,162,39,.20),rgba(201,162,39,.07));
+  border:1px solid rgba(201,162,39,.55);box-shadow:0 0 0 4px rgba(201,162,39,.06),0 6px 20px rgba(0,0,0,.28)}
+.brand{font-family:var(--fd);font-weight:800;font-size:21px;letter-spacing:.02em;text-transform:uppercase;
+  text-shadow:0 1px 0 rgba(0,0,0,.45);line-height:1.05}
+.brand span{color:var(--gold);text-shadow:0 0 14px rgba(201,162,39,.45)}
+.eyebrow{font-family:var(--fn);font-weight:600;font-size:9.5px;letter-spacing:.28em;text-transform:uppercase;
+  color:var(--gold);margin-top:8px}
+.today{font-size:12.5px;color:#8FA6B2;margin-top:12px}
+.today b{color:#D7E3E9;font-weight:600}
+.synced{display:inline-flex;align-items:center;gap:5px;font-family:var(--fn);font-size:9px;
+  letter-spacing:.06em;color:#7C95A3;margin-top:9px}
+.dot{width:7px;height:7px;border-radius:50%;background:#4C6B7A;transition:background .3s}
+.dot.ok{background:#37B87F}.dot.busy{background:var(--gold)}.dot.err{background:#E2614C}
+
+main{padding:14px 12px 0;max-width:620px;margin:0 auto}
+.secttl{font-family:var(--fn);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);
+  margin:20px 4px 8px;display:flex;align-items:center;gap:8px}
+.secttl::after{content:"";flex:1;height:1px;background:var(--line)}
+
+/* ---------- app cards ---------- */
+.app{display:flex;align-items:center;gap:13px;width:100%;text-align:left;background:var(--card);
+  border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:9px;transition:background .15s}
+.app:active{background:var(--field)}
+.app.off{opacity:.62}
+.app .ic{flex:none;width:42px;height:42px;border-radius:12px;background:var(--field);display:grid;place-items:center}
+.app .ic svg{width:21px;height:21px;fill:none;stroke:var(--ink);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.app .m{flex:1;min-width:0}
+.app .t{font-family:var(--fd);font-weight:600;font-size:15.5px;letter-spacing:-.01em}
+.app .s{font-size:12px;color:var(--slate);margin-top:2px}
+.app .go{flex:none;font-family:var(--fn);font-size:11px;color:var(--mute)}
+.app .go svg{width:17px;height:17px;fill:none;stroke:var(--mute);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* ---------- tiles ---------- */
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 12px}
+.tile.wide{grid-column:1/-1}
+.tile .k{font-family:var(--fn);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+.tile .v{font-family:var(--fn);font-weight:600;font-size:21px;margin-top:3px;letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums}
+.tile .n{font-size:11.5px;color:var(--slate);margin-top:3px}
+.v.in{color:var(--in)}.v.out{color:var(--out)}.v.hall{color:var(--hall)}
+.bar{height:6px;border-radius:4px;background:var(--field);overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;background:var(--in);border-radius:4px;transition:width .4s}
+
+/* ---------- locked panel ---------- */
+.locked{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 16px;text-align:center}
+.locked .lk{width:38px;height:38px;border-radius:11px;background:var(--field);display:inline-grid;place-items:center;margin-bottom:10px}
+.locked .lk svg{width:19px;height:19px;fill:none;stroke:var(--hall);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.locked h3{font-family:var(--fd);font-weight:600;font-size:15px;margin:0 0 4px}
+.locked p{font-size:12.5px;color:var(--slate);margin:0 0 16px}
+.btn{display:flex;align-items:center;justify-content:center;gap:7px;height:46px;padding:0 18px;
+  border-radius:12px;background:var(--ink);color:#fff;font-weight:600;font-size:15px;width:100%}
+.btn:active{opacity:.85}
+.btn.gold{background:var(--gold);color:#231A00}
+.btn.ghost{background:var(--card);color:var(--slate);border:1px solid var(--line);font-weight:500;font-size:14px}
+.btnrow{display:flex;gap:8px;margin-top:9px}
+
+/* ---------- cards ---------- */
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:9px}
+.ch{font-family:var(--fd);font-weight:600;font-size:15px;letter-spacing:-.01em;margin-bottom:3px}
+.cs{font-size:12.5px;color:var(--slate);margin-bottom:13px}
+.lastbk{font-family:var(--fn);font-size:11px;color:var(--mute);background:var(--field);
+  border-radius:9px;padding:9px 11px;margin-bottom:11px;line-height:1.5}
+.lastbk.due{color:var(--hall);background:#FBF2DC}
+.lastbk b{color:var(--ink);font-weight:600}
+
+.foot{text-align:center;color:var(--mute);font-size:11.5px;margin:22px 4px 0;line-height:1.7}
+.foot button{color:var(--slate);font-size:11.5px;text-decoration:underline}
+
+/* ---------- code keypad ---------- */
+.scrim{position:fixed;inset:0;background:rgba(14,34,48,.55);opacity:0;pointer-events:none;
+  transition:opacity .22s;z-index:60}
+.scrim.on{opacity:1;pointer-events:auto}
+.pad{position:fixed;left:0;right:0;bottom:0;z-index:61;background:var(--ink);color:#fff;
+  border-radius:20px 20px 0 0;padding:18px 18px calc(20px + env(safe-area-inset-bottom));
+  transform:translateY(102%);transition:transform .26s cubic-bezier(.32,.72,0,1);max-height:92vh;overflow:auto}
+.pad.on{transform:none}
+.pad h2{font-family:var(--fd);font-weight:600;font-size:17px;margin:0 0 4px;text-align:center}
+.pad p{font-size:12.5px;color:#8FA6B2;margin:0 0 18px;text-align:center}
+.dots{display:flex;justify-content:center;gap:9px;flex-wrap:wrap;height:14px;margin-bottom:8px}
+.dots i{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.16);transition:.15s}
+.dots i.on{background:var(--gold);transform:scale(1.12)}
+.padmsg{font-size:12px;color:#E2614C;height:17px;margin-bottom:12px;text-align:center}
+.keys{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:300px;margin:0 auto}
+.keys button{height:58px;touch-action:manipulation;user-select:none;-webkit-user-select:none;border-radius:14px;border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.06);color:#fff;font-size:22px;font-weight:500;font-variant-numeric:tabular-nums}
+.keys button:active{background:rgba(201,162,39,.28)}
+.keys button.act{font-size:14px;color:#8FA6B2}
+.keys button.go{background:var(--gold);border-color:var(--gold);color:#231A00;font-weight:700;font-size:16px}
+.padclose{display:block;margin:16px auto 0;color:#8FA6B2;font-size:13px;text-decoration:underline}
+.shake{animation:shk .3s}
+@keyframes shk{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+
+.toast{position:fixed;left:50%;bottom:calc(26px + env(safe-area-inset-bottom));transform:translate(-50%,20px);
+  background:var(--ink);color:#fff;font-size:13.5px;padding:11px 18px;border-radius:12px;opacity:0;
+  pointer-events:none;transition:.24s;z-index:80;max-width:88vw;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+<script>window.OS_AUTH = { role:'owner', gate:false, homeBar:false, title:'Home' };</script>
+<script src="os-auth.js"></script>
+</head>
+<body>
+
+<header>
+  <div class="brandbox"><div class="brand">OneStop <span>DriveIn</span></div></div>
+  <div class="eyebrow">Srisailam Highway &middot; Vangoor</div>
+  <div class="today" id="today">—</div>
+  <div class="synced"><span class="dot" id="dot"></span><span id="syncTxt">Loading</span></div>
+</header>
+
+<main>
+
+  <!-- ══════════ LIVE SUMMARY (owner only) ══════════ -->
+  <div id="lockedPanel">
+    <div class="secttl">Today at a glance</div>
+    <div class="locked">
+      <div class="lk"><svg viewBox="0 0 24 24"><rect x="4" y="10.5" width="16" height="10" rx="2.5"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></svg></div>
+      <h3>Locked</h3>
+      <p>Attendance, accounts and inventory need the password.</p>
+      <button class="btn gold" id="btnUnlock">Enter password</button>
+    </div>
+  </div>
+
+  <div id="livePanel" hidden>
+    <div class="secttl">Today at a glance</div>
+    <div class="tiles">
+      <div class="tile wide"><div class="k">Cash on hand</div>
+        <div class="v" id="t_cash">—</div><div class="n" id="t_cash_n">Reading the accounts…</div></div>
+      <div class="tile"><div class="k">Collected today</div>
+        <div class="v in" id="t_in">—</div><div class="n" id="t_in_n">&nbsp;</div></div>
+      <div class="tile"><div class="k">Spent today</div>
+        <div class="v out" id="t_out">—</div><div class="n" id="t_out_n">&nbsp;</div></div>
+      <div class="tile"><div class="k">On duty today</div>
+        <div class="v" id="t_att">—</div><div class="n" id="t_att_n">Reading attendance…</div></div>
+      <div class="tile"><div class="k">Cleaning done</div>
+        <div class="v" id="t_duty">—</div><div class="n" id="t_duty_n">Reading duty tracker…</div>
+        <div class="bar"><i id="t_duty_bar" style="width:0"></i></div></div>
+      <div class="tile wide"><div class="k">Stock running low</div>
+        <div class="v hall" id="t_stock">—</div><div class="n" id="t_stock_n">Reading inventory…</div></div>
+    </div>
+  </div>
+
+  <!-- ══════════ THE APPS ══════════ -->
+  <div class="secttl">Open to the staff</div>
+  <a class="app" href="duty.html">
+    <span class="ic"><svg viewBox="0 0 24 24"><path d="M9 11l2 2 4-4"/><rect x="4" y="4" width="16" height="16" rx="3"/></svg></span>
+    <span class="m"><span class="t">Duty tracker</span><span class="s">డ్యూటీ ట్రాకర్ · cleaning rota, daily tasks</span></span>
+    <span class="go"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></span>
+  </a>
+
+  <div class="secttl">Owner and manager</div>
+  <a class="app off" href="attendance-tracker.html" id="a_att">
+    <span class="ic"><svg viewBox="0 0 24 24"><path d="M16 20v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 4 18.5V20"/><circle cx="10" cy="8" r="3.4"/><path d="M17 11l2 2 3.5-3.5"/></svg></span>
+    <span class="m"><span class="t">Attendance &amp; salary</span><span class="s">హాజరు · days, advances, warnings, pay</span></span>
+    <span class="go" id="g_att">Locked</span>
+  </a>
+  <a class="app off" href="onestop-accounts.html" id="a_acc">
+    <span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3 10h18M7 15h4"/></svg></span>
+    <span class="m"><span class="t">Cash &amp; accounts</span><span class="s">Food, lodge, function hall, assets</span></span>
+    <span class="go" id="g_acc">Locked</span>
+  </a>
+  <a class="app off" href="onestop-inventory.html" id="a_inv">
+    <span class="ic"><svg viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5 9 5 9-5zM3 12l9 5 9-5M3 16.5l9 5 9-5"/></svg></span>
+    <span class="m"><span class="t">Inventory</span><span class="s">Stock, closing counts, shopping, reorder</span></span>
+    <span class="go" id="g_inv">Locked</span>
+  </a>
+
+  <div id="backupPanel" hidden>
+    <div class="secttl">Backup</div>
+    <div class="card">
+      <div class="ch">A copy you keep yourself</div>
+      <div class="cs">Everything in all four apps, saved to your phone as one file. Keep it in
+        iCloud or mail it to yourself, so nothing depends on the database alone.</div>
+      <div class="lastbk" id="lastBk">Checking…</div>
+      <button class="btn" id="btnBackup">Download a backup</button>
+      <div class="btnrow">
+        <button class="btn ghost" id="btnRestore">Restore from a backup file</button>
+      </div>
+      <input type="file" id="bkFile" accept=".json,application/json" hidden>
+    </div>
+  </div>
+
+  <div class="foot" id="foot">
+    Everything syncs to the same database, so what the manager enters at the shop
+    shows here straight away.
+  </div>
+
+</main>
+
+<div class="scrim" id="scrim"></div>
+<div class="pad" id="pad">
+  <h2 id="padTitle">Password</h2>
+  <p id="padNote">Enter the password to open attendance, accounts and inventory.</p>
+  <div class="dots" id="dots"></div>
+  <div class="padmsg" id="padMsg"></div>
+  <div class="keys" id="keys">
+    <button type="button" data-k="1">1</button><button type="button" data-k="2">2</button><button type="button" data-k="3">3</button>
+    <button type="button" data-k="4">4</button><button type="button" data-k="5">5</button><button type="button" data-k="6">6</button>
+    <button type="button" data-k="7">7</button><button type="button" data-k="8">8</button><button type="button" data-k="9">9</button>
+    <button type="button" class="act" data-k="del">Delete</button><button type="button" data-k="0">0</button>
+    <button type="button" class="go" data-k="go">Open</button>
+  </div>
+  <button class="padclose" id="padClose">Cancel</button>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════════
+   1. SETTINGS
+   The password lives in Firebase now, not in this file. Sign-in is
+   handled by os-auth.js, loaded in the <head> above.
+   ══════════════════════════════════════════════════════════════════ */
+const FB = 'https://attendance-and-salary-tr-20681-default-rtdb.asia-southeast1.firebasedatabase.app';
+/* ══════════════════════════════════════════════════════════════════ */
+
+const $ = s => document.querySelector(s);
+const nf = new Intl.NumberFormat('en-IN',{maximumFractionDigits:0});
+const money = n => nf.format(Math.round(n||0));
+const num = v => { const n = parseFloat(String(v).replace(/[^0-9.\-]/g,'')); return isNaN(n)?0:n; };
+const istToday = () => new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata'}).format(new Date());
+
+function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('on');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('on'),2000); }
+function setSync(s, txt){ $('#dot').className = 'dot '+(s||''); $('#syncTxt').textContent = txt; }
+
+/* ---------- greeting line ---------- */
+(function(){
+  const now = new Date();
+  const ist = new Date(now.toLocaleString('en-US',{timeZone:'Asia/Kolkata'}));
+  const h = ist.getHours();
+  const greet = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+  const d = new Intl.DateTimeFormat('en-GB',{weekday:'long',day:'numeric',month:'long',
+              timeZone:'Asia/Kolkata'}).format(now);
+  const t = new Intl.DateTimeFormat('en-GB',{hour:'2-digit',minute:'2-digit',hour12:true,
+              timeZone:'Asia/Kolkata'}).format(now);
+  $('#today').innerHTML = `${greet} · <b>${d}</b><br>${t} at the shop`;
+})();
+
+/* ══════════════════════════════════════════════════════════════════
+   2. ACCESS CODE
+   ══════════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════
+   2. SIGNING IN
+   ══════════════════════════════════════════════════════════════════ */
+const isUnlocked    = () => OSAuth.isOpen();
+const unlockedUntil = () => OSAuth.openUntil();
+
+/* --- the keypad, used both for signing in and for setting a new password --- */
+let typed = '', padMode = 'open', newCode = '', padBusy = false;
+function paintDots(){
+  let h = '';
+  for(let i=0;i<Math.max(8,typed.length);i++) h += `<i class="${i<typed.length?'on':''}"></i>`;
+  $('#dots').innerHTML = h;
+}
+function padKeys(off){ $('#keys').querySelectorAll('button').forEach(b => b.disabled = !!off); }
+function openPad(mode){
+  padMode = mode; typed = ''; newCode = ''; padBusy = false;
+  $('#padMsg').textContent = ''; padKeys(false);
+  if(mode === 'open'){
+    $('#padTitle').textContent = 'Password';
+    $('#padNote').textContent  = 'Enter the password to open attendance, accounts and inventory.';
+  } else {
+    $('#padTitle').textContent = 'Set a new password';
+    $('#padNote').textContent  = 'Type the new password, then press Save. Six digits or more.';
+  }
+  $('#keys .go').textContent = mode === 'open' ? 'Open' : 'Save';
+  paintDots(); $('#pad').classList.add('on'); $('#scrim').classList.add('on');
+}
+function closePad(){ $('#pad').classList.remove('on'); $('#scrim').classList.remove('on'); typed=''; }
+function wrong(msg){
+  $('#padMsg').textContent = msg;
+  $('#pad').classList.add('shake');
+  setTimeout(()=>$('#pad').classList.remove('shake'),320);
+  typed = ''; paintDots();
+}
+function padError(e){
+  const m = (e && e.message) || '';
+  if(/INVALID_LOGIN|INVALID_PASSWORD|EMAIL_NOT_FOUND|INVALID_CREDENTIAL/.test(m)) return 'Wrong password. Try again.';
+  if(/TOO_MANY_ATTEMPTS/.test(m)) return 'Too many tries. Wait a few minutes.';
+  if(/WEAK_PASSWORD/.test(m)) return 'Too short — use six digits or more.';
+  if(/NETWORK|Failed to fetch/i.test(m)) return 'No connection. Try again.';
+  return m || 'Could not sign in.';
+}
+function submitPad(){
+  if(padBusy || !typed) return;
+
+  if(padMode === 'open'){
+    if(typed.length < 6){ wrong('The password is six digits or more.'); return; }
+    padBusy = true; padKeys(true); $('#padMsg').textContent = 'Signing in…';
+    OSAuth.signIn(typed).then(() => {
+      closePad(); padBusy = false; padKeys(false);
+      applyLock(); loaded = false; loadDashboard();
+      toast('Signed in for 12 hours');
+    }).catch(e => { padBusy = false; padKeys(false); wrong(padError(e)); });
+    return;
+  }
+
+  /* setting a new password */
+  if(!newCode){
+    if(typed.length < 6){ wrong('Use at least six digits.'); return; }
+    newCode = typed; typed = ''; paintDots();
+    $('#padNote').textContent = 'Type the same password once more to confirm.';
+    return;
+  }
+  if(typed !== newCode){
+    newCode = ''; $('#padNote').textContent = 'Type the new password, then press Save.';
+    wrong('The two did not match.'); return;
+  }
+  padBusy = true; padKeys(true); $('#padMsg').textContent = 'Saving…';
+  OSAuth.changePassword(newCode).then(() => {
+    closePad(); padBusy = false; padKeys(false);
+    toast('Password changed — use it on every phone from now on');
+  }).catch(e => { padBusy = false; padKeys(false); newCode = ''; wrong(padError(e)); });
+}
+$('#keys').querySelectorAll('button').forEach(b => b.onclick = () => {
+  if(padBusy) return;
+  const k = b.dataset.k;
+  $('#padMsg').textContent = '';
+  if(k === 'del')     typed = typed.slice(0,-1);
+  else if(k === 'go') return submitPad();
+  else if(typed.length < 24) typed += k;
+  paintDots();
+});
+document.addEventListener('keydown', e => {
+  if(!$('#pad').classList.contains('on') || padBusy) return;
+  if(/^[0-9]$/.test(e.key) && typed.length < 24){ typed += e.key; $('#padMsg').textContent=''; paintDots(); }
+  else if(e.key === 'Backspace'){ typed = typed.slice(0,-1); paintDots(); }
+  else if(e.key === 'Enter'){ submitPad(); }
+  else if(e.key === 'Escape'){ closePad(); }
+});
+$('#btnUnlock').onclick = () => openPad('open');
+$('#padClose').onclick  = closePad;
+$('#scrim').onclick     = () => { if(!padBusy) closePad(); };
+
+/* --- show or hide everything that needs the code --- */
+function applyLock(){
+  const on = isUnlocked();
+  $('#lockedPanel').hidden = on;
+  $('#livePanel').hidden   = !on;
+  $('#backupPanel').hidden = !on;
+  [['a_att','g_att'],['a_acc','g_acc'],['a_inv','g_inv']].forEach(([a,g]) => {
+    $('#'+a).classList.toggle('off', !on);
+    $('#'+g).innerHTML = on
+      ? '<svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>'
+      : 'Locked';
+  });
+  $('#foot').innerHTML = on
+    ? `Signed in on this phone until ${new Date(unlockedUntil()).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',hour12:true})}.<br>
+       <button id="btnRelock">Lock now</button> · <button id="btnNewCode">Change the password</button>`
+    : `The database is closed to anyone who is not signed in. The duty tracker stays
+       open for the staff.`;
+  if(on){
+    $('#btnRelock').onclick  = () => { OSAuth.signOut(); applyLock(); loaded = false; setSync('','Locked'); toast('Locked'); };
+    $('#btnNewCode').onclick = () => openPad('set');
+  }
+}
+
+/* tapping a locked app opens the keypad instead of the app */
+['a_att','a_acc','a_inv'].forEach(id => $('#'+id).addEventListener('click', e => {
+  if(!isUnlocked()){ e.preventDefault(); openPad('open'); }
+}));
+
+/* ══════════════════════════════════════════════════════════════════
+   3. THE DASHBOARD — read-only look at what the four apps hold
+   ══════════════════════════════════════════════════════════════════ */
+const get = path => fetch(FB+'/'+path+'.json')
+  .then(r => { if(!r.ok) throw new Error(r.status); return r.json(); });
+/* Firebase hands back an object instead of an array when rows have been removed. */
+const toArr = v => !v ? [] : (Array.isArray(v) ? v.filter(Boolean) : Object.values(v).filter(Boolean));
+
+let loaded = false;
+async function loadDashboard(){
+  if(loaded || !isUnlocked()) return;
+  loaded = true;
+  setSync('busy','Reading');
+  showLastBackup();
+  const today = istToday();
+  const jobs = [accountsTile(today), attendanceTile(today), dutyTile(today), stockTile()];
+  const res = await Promise.allSettled(jobs);
+  const bad = res.filter(r => r.status === 'rejected').length;
+  setSync(bad ? 'err' : 'ok', bad ? 'Partly offline' : 'Up to date');
+}
+
+/* ---- cash and accounts ---- */
+async function accountsTile(today){
+  try{
+    const d = await get('onestop-accounts');
+    const led = toArr(d && d.ledger);
+    /* the running balance, exactly as the accounts app works it out */
+    let carry = 0;
+    led.forEach(r => {
+      const reset = (r.ob !== undefined && r.ob !== null && r.ob !== '');
+      const open  = reset ? num(r.ob) : carry;
+      carry = open + num(r.rc) + num(r.rm) - num(r.co);
+    });
+    const mine = led.filter(r => r.d === today);
+    const inn  = mine.reduce((s,r)=>s+num(r.rc)+num(r.rm)+num(r.up),0);
+    const out  = mine.reduce((s,r)=>s+num(r.co)+num(r.uo),0);
+    const last = led.map(r=>r.d||'').sort().slice(-1)[0];
+    $('#t_cash').textContent   = '₹'+money(carry);
+    $('#t_cash_n').textContent = last === today ? 'Counted up to today'
+                               : last ? 'Last entry '+niceDate(last) : 'Nothing recorded yet';
+    $('#t_in').textContent     = '₹'+money(inn);
+    $('#t_out').textContent    = '₹'+money(out);
+    const n = mine.filter(r=>num(r.co)>0||num(r.uo)>0).length;
+    $('#t_in_n').textContent   = mine.length ? 'Cash and UPI' : 'Nothing yet today';
+    $('#t_out_n').textContent  = n ? n+' payment'+(n>1?'s':'') : 'Nothing yet today';
+  }catch(e){
+    $('#t_cash').textContent='—'; $('#t_cash_n').textContent='Accounts did not load';
+    throw e;
+  }
+}
+
+/* ---- who is in today ---- */
+async function attendanceTile(today){
+  try{
+    const [workers, att] = await Promise.all([
+      get('onestop-hr-data/workers'), get('onestop-hr-data/attendance')
+    ]);
+    const list = toArr(workers).filter(w => w.active !== false);
+    let present = 0, half = 0, absent = 0, marked = 0;
+    list.forEach(w => {
+      const s = att && att[w.id] && att[w.id][today];
+      if(!s) return;
+      marked++;
+      if(s === 'P') present++; else if(s === 'H') half++; else absent++;
+    });
+    $('#t_att').textContent = marked ? (present+half)+' / '+list.length : '—';
+    $('#t_att_n').textContent = !marked ? 'Not marked yet today'
+      : [half?half+' half day':'', absent?absent+' absent':''].filter(Boolean).join(' · ') || 'Everyone marked in';
+  }catch(e){
+    $('#t_att').textContent='—'; $('#t_att_n').textContent='Attendance did not load';
+    throw e;
+  }
+}
+
+/* ---- cleaning tasks ticked off today ---- */
+async function dutyTile(today){
+  try{
+    const d = await get('onestop-duty-data/'+today);
+    let done = 0, total = 0;
+    Object.keys(d||{}).forEach(w => {
+      const tasks = (d[w] && d[w].tasks) || [];
+      tasks.forEach(t => { total++; if(t && t.done) done++; });
+    });
+    const pct = total ? Math.round(done/total*100) : 0;
+    $('#t_duty').textContent = total ? done+' / '+total : '—';
+    $('#t_duty_n').textContent = !total ? 'Nobody has opened it today'
+      : pct === 100 ? 'All finished' : pct+'% of today\u2019s tasks';
+    $('#t_duty_bar').style.width = pct+'%';
+    $('#t_duty_bar').style.background = pct === 100 ? 'var(--in)' : pct >= 50 ? 'var(--gold)' : 'var(--out)';
+  }catch(e){
+    $('#t_duty').textContent='—'; $('#t_duty_n').textContent='Duty tracker did not load';
+    throw e;
+  }
+}
+
+/* ---- what is running out ---- */
+async function stockTile(){
+  try{
+    const items = await get('onestop-inventory-app/inventoryItems');
+    const all = Object.values(items||{});
+    const watched = all.filter(it => it && it.lowAt !== null && it.lowAt !== undefined && it.lowAt !== '');
+    const low = watched.filter(it => num(it.quantity) <= num(it.lowAt));
+    const out = low.filter(it => num(it.quantity) <= 0);
+    $('#t_stock').textContent = low.length ? low.length+' item'+(low.length>1?'s':'') : 'All stocked';
+    $('#t_stock').className   = 'v ' + (low.length ? 'hall' : 'in');
+    $('#t_stock_n').textContent = !all.length ? 'Nothing in the stock list yet'
+      : low.length ? (out.length ? out.length+' finished · ' : '') + low.slice(0,3).map(i=>i.name).join(', ')
+                     + (low.length>3 ? ' and '+(low.length-3)+' more' : '')
+      : watched.length + ' items watched, none below their mark';
+  }catch(e){
+    $('#t_stock').textContent='—'; $('#t_stock_n').textContent='Inventory did not load';
+    throw e;
+  }
+}
+
+function niceDate(d){
+  const [y,m,dd] = String(d).split('-').map(Number);
+  if(!y) return d;
+  return new Date(Date.UTC(y,m-1,dd)).toLocaleDateString('en-GB',{day:'numeric',month:'short',timeZone:'UTC'});
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   4. BACKUP AND RESTORE
+   Every place the four apps keep something. If a new app is added
+   later, add its path here so the backup stays complete.
+   ══════════════════════════════════════════════════════════════════ */
+const BACKUP_NODES = [
+  ['onestop-accounts',           'Cash and accounts'],
+  ['onestop-hr-data',            'Attendance and salary'],
+  ['onestop-inventory-app',      'Inventory'],
+  ['onestop-duty-data',          'Duty — daily progress'],
+  ['onestop-duty-history',       'Duty — history'],
+  ['onestop-duty-worker-names',  'Duty — worker names'],
+  ['onestop-periodic-duties',    'Duty — periodic tasks'],
+  ['onestop-checklist-duties',   'Duty — checklists']
+];
+/* the password lives in Firebase, never in a backup file */
+
+const bkBtn = $('#btnBackup');
+const DAYS = 7;                       // nudge for a fresh backup after this long
+
+function countOf(v){
+  if(v === null || v === undefined) return 0;
+  if(Array.isArray(v)) return v.filter(x=>x!==null).length;
+  if(typeof v === 'object') return Object.keys(v).length;
+  return 1;
+}
+function whenWords(ts){
+  if(!ts) return null;
+  const days = Math.floor((Date.now()-ts)/86400000);
+  const d = new Date(ts).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+  return { days, text: days === 0 ? 'today' : days === 1 ? 'yesterday' : days+' days ago', date:d };
+}
+async function showLastBackup(){
+  let ts = 0;
+  try{ ts = +localStorage.getItem('onestop-last-backup') || 0; }catch(e){}
+  try{ const v = await get('onestop-access/lastBackup'); if(v && +v > ts) ts = +v; }catch(e){}
+  const el = $('#lastBk'), w = whenWords(ts);
+  if(!w){ el.className = 'lastbk due'; el.innerHTML = '<b>No backup taken yet.</b><br>Take one now, then once a month is plenty.'; return; }
+  el.className = 'lastbk' + (w.days >= DAYS ? ' due' : '');
+  el.innerHTML = `Last backup <b>${w.text}</b> — ${w.date}.` +
+    (w.days >= DAYS ? '<br>Worth taking a fresh one.' : '');
+}
+
+async function fetchAll(){
+  const data = {};
+  for(let i=0;i<BACKUP_NODES.length;i++){
+    const [node, label] = BACKUP_NODES[i];
+    bkBtn.textContent = `Reading ${label}… (${i+1}/${BACKUP_NODES.length})`;
+    data[node] = await get(node);
+  }
+  return data;
+}
+function saveFile(obj, name){
+  const blob = new Blob([JSON.stringify(obj, null, 1)], {type:'application/json'});
+  const url  = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 4000);
+}
+function packet(data){
+  return { app:'onestop-drivein', version:1, takenAt:Date.now(),
+           takenOn:new Date().toISOString(), data };
+}
+
+bkBtn.onclick = async () => {
+  if(bkBtn.disabled) return;
+  bkBtn.disabled = true;
+  try{
+    const data = await fetchAll();
+    const stamp = istToday();
+    saveFile(packet(data), `onestop-backup-${stamp}.json`);
+    const ts = Date.now();
+    try{ localStorage.setItem('onestop-last-backup', String(ts)); }catch(e){}
+    fetch(FB+'/onestop-access/lastBackup.json',{method:'PUT',
+      headers:{'Content-Type':'application/json'}, body:JSON.stringify(ts)}).catch(()=>{});
+    const total = Object.values(data).reduce((s,v)=>s+countOf(v),0);
+    toast(`Backup saved — ${total} records in one file`);
+    showLastBackup();
+  }catch(e){
+    toast('Backup stopped — check the connection and try again');
+  }finally{
+    bkBtn.disabled = false; bkBtn.textContent = 'Download a backup';
+  }
+};
+
+/* ---- restore ---- */
+$('#btnRestore').onclick = () => $('#bkFile').click();
+$('#bkFile').onchange = async () => {
+  const file = $('#bkFile').files[0];
+  $('#bkFile').value = '';
+  if(!file) return;
+  let pack;
+  try{
+    pack = JSON.parse(await file.text());
+    if(pack.app !== 'onestop-drivein' || !pack.data) throw 0;
+  }catch(e){
+    alert('That is not a OneStop backup file.\n\nPick a file named onestop-backup-….json'); return;
+  }
+  const nodes = BACKUP_NODES.filter(([n]) => pack.data[n] !== undefined);
+  if(!nodes.length){ alert('That backup file is empty.'); return; }
+  const w = whenWords(pack.takenAt);
+  const lines = nodes.map(([n,l]) => '• '+l+' — '+countOf(pack.data[n])+' records').join('\n');
+
+  if(!confirm(
+    `Restore this backup?\n\nTaken ${w ? w.date : 'unknown date'}\n\n${lines}\n\n`+
+    `Everything above will be REPLACED with what is in the file. Anything entered since that `+
+    `date is lost.\n\nA copy of today's data downloads first, so you can go back.`)) return;
+
+  $('#btnRestore').disabled = true;
+  try{
+    bkBtn.disabled = true;
+    const before = await fetchAll();
+    saveFile(packet(before), `onestop-before-restore-${istToday()}.json`);
+    bkBtn.textContent = 'Download a backup'; bkBtn.disabled = false;
+  }catch(e){
+    $('#btnRestore').disabled = false; bkBtn.disabled = false; bkBtn.textContent = 'Download a backup';
+    alert('Could not save today\u2019s copy first, so nothing was changed.\n\nCheck the connection and try again.');
+    return;
+  }
+  if(prompt('Last check.\n\nType the word RESTORE to go ahead.') !== 'RESTORE'){
+    $('#btnRestore').disabled = false; toast('Nothing was changed'); return;
+  }
+  let done = 0, failed = [];
+  for(const [node, label] of nodes){
+    $('#btnRestore').textContent = 'Putting back '+label+'…';
+    try{
+      const r = await fetch(FB+'/'+node+'.json', {method:'PUT',
+        headers:{'Content-Type':'application/json'}, body:JSON.stringify(pack.data[node])});
+      if(!r.ok) throw 0;
+      done++;
+    }catch(e){ failed.push(label); }
+  }
+  $('#btnRestore').disabled = false;
+  $('#btnRestore').textContent = 'Restore from a backup file';
+  if(failed.length) alert(`Put back ${done} of ${nodes.length}.\n\nThese did not go through:\n• `+failed.join('\n• ')+`\n\nTry again for the rest.`);
+  else { toast('Restored — reopening'); setTimeout(()=>location.reload(), 1200); }
+};
+
+/* ══════════ START ══════════ */
+applyLock();
+if(isUnlocked()){ loadDashboard(); } else { setSync('', 'Locked'); }
+document.addEventListener('visibilitychange', () => {
+  if(!document.hidden){ applyLock(); loaded = false; loadDashboard(); }
+});
+</script>
+</body>
+</html>
