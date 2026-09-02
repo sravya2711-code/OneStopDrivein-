@@ -1,0 +1,2304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0E2230">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="OneStop Accounts">
+<title>OneStop DriveIn — Cash &amp; Accounts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- fonts load without holding up the first paint -->
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500;600&display=swap"></noscript>
+<link rel="preconnect" href="https://attendance-and-salary-tr-20681-default-rtdb.asia-southeast1.firebasedatabase.app" crossorigin>
+<link rel="preconnect" href="https://securetoken.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
+<style>
+:root{
+  --ink:#0E2230; --ink2:#17303F; --slate:#5C7280; --mute:#8497A1;
+  --field:#EDF1F3; --card:#FFFFFF; --line:#DCE5E9; --bg:#F2F6F7;
+  --in:#0B6E4F; --out:#A32C1E; --hall:#8C5A12; --gold:#C9A227;
+  --fd:'Bricolage Grotesque',system-ui,sans-serif;
+  --fb:system-ui,-apple-system,'Segoe UI',sans-serif;
+  --fn:'IBM Plex Mono',ui-monospace,monospace;
+  --pb:calc(70px + env(safe-area-inset-bottom));
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--fb);font-size:15px;line-height:1.45;
+  -webkit-font-smoothing:antialiased;padding-bottom:var(--pb)}
+button,input,select,textarea{font-family:inherit;font-size:16px;color:inherit}
+button{cursor:pointer;border:0;background:none;padding:0;color:inherit}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+/* ---------- header ---------- */
+header{background:var(--ink);color:#fff;padding:calc(12px + env(safe-area-inset-top)) 16px 0;
+  border-radius:0 0 20px 20px;position:relative;overflow:hidden}
+header::after{content:"";position:absolute;inset:auto 0 0 0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(201,162,39,.55),transparent)}
+.brandrow{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;position:relative;padding-top:2px}
+/* The sync badge used to be absolutely positioned over the brand box, which made
+   "OneStop DriveIn" and the status text collide on narrow phones. It now sits on
+   its own row above the brand, so the two can never overlap at any width. */
+.syncrow{display:flex;justify-content:flex-end;align-items:center;min-height:14px;margin-bottom:2px}
+.brandbox{display:inline-block;text-align:center;padding:9px 20px 8px;border-radius:14px;max-width:100%;
+  background:linear-gradient(180deg,rgba(201,162,39,.20),rgba(201,162,39,.07));
+  border:1px solid rgba(201,162,39,.55);box-shadow:0 0 0 4px rgba(201,162,39,.06),0 6px 20px rgba(0,0,0,.28)}
+.brand{font-family:var(--fd);font-weight:800;font-size:clamp(15px,5.2vw,21px);letter-spacing:.02em;text-transform:uppercase;
+  color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.45);line-height:1.05;white-space:nowrap}
+.brand span{color:var(--gold);text-shadow:0 0 14px rgba(201,162,39,.45)}
+.eyebrow{font-family:var(--fn);font-weight:600;font-size:9.5px;letter-spacing:.28em;text-transform:uppercase;
+  color:var(--gold);margin-top:4px;text-align:center}
+.sync{display:flex;align-items:center;gap:5px;font-family:var(--fn);
+  font-size:9px;color:#8FA6B2;letter-spacing:.06em;white-space:nowrap}
+@media(max-width:400px){
+  .brandbox{padding:8px 14px 7px}
+  .sync span:last-child{display:none}
+}
+.dot{width:7px;height:7px;border-radius:50%;background:#4C6B7A;transition:background .3s}
+.dot.ok{background:#37B87F}.dot.busy{background:var(--gold)}.dot.err{background:#E2614C}
+.hero{padding:16px 0 18px;text-align:center}
+.hero .lab{font-family:var(--fn);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#7C95A3}
+.hero .big{font-family:var(--fn);font-weight:600;font-size:40px;letter-spacing:-.03em;line-height:1;
+  margin-top:6px;font-variant-numeric:tabular-nums}
+.hero .big i{font-style:normal;font-size:22px;color:var(--gold);margin-right:4px}
+.hero .sub{font-size:12px;color:#8FA6B2;margin-top:7px}
+.hero .sub b{color:#D7E3E9;font-weight:600}
+
+/* ---------- layout ---------- */
+main{padding:14px 12px 0;max-width:620px;margin:0 auto}
+.tab{display:none}.tab.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+.card.flush{padding:0;overflow:hidden}
+.h{font-family:var(--fd);font-weight:600;font-size:15px;letter-spacing:-.01em;margin:0 0 2px}
+.sub{font-size:12px;color:var(--slate)}
+.secttl{font-family:var(--fn);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);
+  margin:18px 4px 8px;display:flex;align-items:center;gap:8px}
+.secttl::after{content:"";flex:1;height:1px;background:var(--line)}
+
+/* ---------- stat grid ---------- */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 11px}
+.stat .k{font-family:var(--fn);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+.stat .v{font-family:var(--fn);font-weight:600;font-size:19px;margin-top:3px;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.v.in{color:var(--in)}.v.out{color:var(--out)}.v.hall{color:var(--hall)}.v.upi{color:#4A3E9B}
+.stat.wide{grid-column:1/-1}
+.formula.wide{grid-column:1/-1}
+
+/* ---------- the tape ---------- */
+.daygrp{margin-bottom:16px}
+.dayhd{display:flex;align-items:baseline;justify-content:space-between;padding:0 4px 7px;position:sticky;top:0;
+  background:linear-gradient(var(--bg) 72%,rgba(242,246,247,0));z-index:2}
+.dayhd .dt{font-family:var(--fd);font-weight:600;font-size:14px}
+.dayhd .dn{font-family:var(--fn);font-size:11px;color:var(--slate);font-variant-numeric:tabular-nums}
+.tape{position:relative;padding-left:22px}
+.tape::before{content:"";position:absolute;left:7px;top:6px;bottom:6px;width:2px;
+  background:repeating-linear-gradient(180deg,var(--line) 0 5px,transparent 5px 9px)}
+.strip{position:relative;background:var(--card);border:1px solid var(--line);border-radius:11px;
+  padding:10px 12px;margin-bottom:7px;display:block;width:100%;text-align:left}
+.strip::before{content:"";position:absolute;left:-19px;top:19px;width:9px;height:9px;border-radius:50%;
+  background:var(--card);border:2px solid var(--line)}
+.strip.hasout::before{border-color:var(--out)}
+.strip.hasin::before{border-color:var(--in)}
+.strip.reset::before{border-color:var(--gold);background:var(--gold)}
+.strip.bkt{background:var(--field);padding:7px 12px}
+.strip.bkt::before{display:none}
+.strip:active{background:var(--field)}
+.striptop{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.desc{font-size:14px;font-weight:500;line-height:1.3}
+.amt{font-family:var(--fn);font-weight:600;font-size:15px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.legs{display:flex;flex-wrap:wrap;gap:4px 6px;margin-top:7px}
+.leg{font-family:var(--fn);font-size:10.5px;background:var(--field);color:var(--slate);
+  padding:2px 7px;border-radius:20px;font-variant-numeric:tabular-nums}
+.leg.i{background:#E4F3ED;color:var(--in)}
+.leg.o{background:#FBE9E6;color:var(--out)}
+.leg.u{background:#EDEBFA;color:#4A3E9B}
+.leg.g{background:#FBF2DC;color:var(--hall)}
+.leg.c{background:#E7EDF0;color:#2C4C5E}
+.stripfoot{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:7px;
+  border-top:1px dashed var(--line)}
+.chain{font-family:var(--fn);font-size:10.5px;color:var(--mute);font-variant-numeric:tabular-nums}
+.chain b{color:var(--ink);font-weight:600}
+.diffpill{font-family:var(--fn);font-size:10.5px;padding:2px 7px;border-radius:20px;font-variant-numeric:tabular-nums}
+.diffpill.ok{background:#E4F3ED;color:var(--in)}
+.diffpill.bad{background:#FBE9E6;color:var(--out)}
+
+/* ---------- rows ---------- */
+.row{display:flex;align-items:center;gap:10px;padding:11px 12px;background:var(--card);
+  border:1px solid var(--line);border-radius:11px;margin-bottom:7px;width:100%;text-align:left}
+.row:active{background:var(--field)}
+.row .m{flex:1;min-width:0}
+.row .t{font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .s{font-family:var(--fn);font-size:10.5px;color:var(--mute);margin-top:2px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .s.wrap{white-space:normal;line-height:1.4}
+.row .a{font-family:var(--fn);font-weight:600;font-size:15px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.catbar{height:6px;border-radius:4px;background:var(--field);overflow:hidden;margin-top:6px}
+.catbar i{display:block;height:100%;background:var(--hall);border-radius:4px}
+.splitline{margin-bottom:11px}
+.splitline:last-child{margin-bottom:0}
+.splitline .l{display:flex;justify-content:space-between;gap:10px;font-size:13px}
+.splitline .l span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.splitline .l b{font-family:var(--fn);font-weight:600;font-size:13px;font-variant-numeric:tabular-nums}
+
+/* ---------- buttons ---------- */
+.btn{display:flex;align-items:center;justify-content:center;gap:7px;height:46px;padding:0 18px;
+  border-radius:12px;background:var(--ink);color:#fff;font-weight:600;font-size:15px;width:100%}
+.btn.gold{background:var(--gold);color:#231B00}
+.btn.ghost{background:var(--field);color:var(--ink)}
+.btn.danger{background:#FBE9E6;color:var(--out)}
+.btn.out{background:var(--out);color:#fff}
+.btn.inn{background:var(--in);color:#fff}
+.btn:active{transform:scale(.985)}
+a.btn{text-decoration:none}
+.btnrow{display:flex;gap:8px;margin-top:10px}
+
+/* ---------- filter ---------- */
+.filter{margin:0 0 12px}
+/* -webkit-overflow-scrolling:touch put this strip on its own layer, and on iOS
+   that layer paints outside its box — the chips ended up sitting on top of the
+   header. Momentum scrolling is the default on iOS now, so the line is not
+   needed. The clip and the contained overscroll keep the strip in its place. */
+.chips{display:flex;gap:6px;overflow-x:auto;overflow-y:hidden;padding-bottom:2px;
+  overscroll-behavior-x:contain;clip-path:inset(0)}
+.chips::-webkit-scrollbar{display:none}
+.chips button{flex:none;height:34px;padding:0 13px;border-radius:18px;background:var(--card);
+  border:1px solid var(--line);font-family:var(--fn);font-size:11.5px;letter-spacing:.04em;color:var(--slate);white-space:nowrap}
+.chips button.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.rangebox{display:flex;align-items:center;gap:8px;margin-top:8px}
+.rangebox input{flex:1;min-width:0;height:40px;border:1px solid var(--line);border-radius:11px;
+  background:var(--card);padding:0 10px;font-size:14px;font-family:var(--fb)}
+.rangebox span{font-family:var(--fn);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+
+/* ---------- forms ---------- */
+.f{margin-bottom:11px}
+.f label{display:block;font-family:var(--fn);font-size:10px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--mute);margin-bottom:5px}
+.f input,.f select,.f textarea{width:100%;height:46px;border:1px solid var(--line);border-radius:11px;
+  background:var(--field);padding:0 12px;font-family:var(--fn);font-size:16px}
+.f textarea{height:auto;padding:11px 12px;font-family:var(--fb);resize:vertical}
+.f input[type=date]{font-family:var(--fb)}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.chk{display:flex;align-items:flex-start;gap:10px;padding:11px 12px;background:var(--field);
+  border:1px solid var(--line);border-radius:11px;margin-bottom:11px}
+.chk input{width:20px;height:20px;accent-color:var(--gold);flex:none;margin-top:1px}
+.chk div{font-size:13px;line-height:1.3}
+.chk small{display:block;color:var(--slate);font-size:11.5px;margin-top:1px}
+.callout{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--gold);
+  border-radius:12px;padding:11px 13px;margin-bottom:12px}
+.callout .cr{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.callout .ck{font-family:var(--fn);font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--mute)}
+.callout .cv{font-family:var(--fn);font-size:20px;font-weight:600;font-variant-numeric:tabular-nums}
+.callout small{display:block;color:var(--slate);font-size:11.5px;margin-top:4px;line-height:1.4}
+.callout.off{opacity:.45}
+
+/* ---------- sheet ---------- */
+.scrim{position:fixed;inset:0;background:rgba(8,20,28,.5);opacity:0;pointer-events:none;
+  transition:opacity .22s;z-index:40;backdrop-filter:blur(2px)}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:41;background:var(--bg);
+  border-radius:20px 20px 0 0;padding:8px 16px calc(18px + env(safe-area-inset-bottom));
+  max-height:92vh;overflow-y:auto;transform:translateY(101%);transition:transform .26s cubic-bezier(.3,.8,.4,1)}
+.sheet.on{transform:translateY(0)}
+.grip{width:38px;height:4px;border-radius:4px;background:var(--line);margin:6px auto 12px}
+.sheettop{position:sticky;top:0;z-index:3;background:var(--bg);padding-top:2px;margin:0 -16px 10px;padding-left:16px;padding-right:16px}
+.sheettop .gripbar{width:38px;height:4px;border-radius:4px;background:var(--line);margin:4px auto 8px}
+.closerow{display:flex;justify-content:flex-end;padding-bottom:6px}
+.xbtn{width:38px;height:38px;border-radius:50%;background:var(--field);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-size:20px;line-height:1;color:var(--slate)}
+.xbtn:active{background:var(--line)}
+.sheet .btn.cancel{margin-top:9px}
+
+/* ---------- history ---------- */
+.hitem{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:10px 12px;margin-bottom:7px}
+.hhead{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.badge{font-family:var(--fn);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+  padding:3px 8px;border-radius:20px;white-space:nowrap}
+.badge.added{background:#E4F3ED;color:var(--in)}
+.badge.edited{background:#FBF2DC;color:var(--hall)}
+.badge.deleted{background:#FBE9E6;color:var(--out)}
+.hkind{font-family:var(--fn);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin-top:7px}
+.hlabel{font-size:14px;font-weight:500;margin-top:2px;line-height:1.3}
+.hamt{font-family:var(--fn);font-weight:600;font-size:14px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.hchg{margin-top:8px;padding-top:7px;border-top:1px dashed var(--line);font-family:var(--fn);
+  font-size:11px;color:var(--slate);line-height:1.6}
+.hchg div{overflow-wrap:anywhere}
+.htime{font-family:var(--fn);font-size:10px;color:var(--mute);margin-top:6px;font-variant-numeric:tabular-nums}
+.sheet h2{font-family:var(--fd);font-weight:700;font-size:19px;margin:0 0 3px;letter-spacing:-.02em}
+.sheet .note{font-size:12px;color:var(--slate);margin:0 0 14px}
+
+/* ---------- nav ---------- */
+nav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(14,34,48,.97);
+  backdrop-filter:blur(12px);display:flex;padding:7px 6px calc(7px + env(safe-area-inset-bottom));
+  border-top:1px solid rgba(255,255,255,.07)}
+nav button{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:3px;padding:6px 1px;
+  border-radius:11px;color:#7C95A3;font-family:var(--fn);font-size:8px;letter-spacing:.03em;text-transform:uppercase;
+  line-height:1.15;text-align:center;white-space:normal}
+nav button svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
+nav button.on{color:var(--gold);background:rgba(201,162,39,.11)}
+
+.empty{text-align:center;padding:34px 20px;color:var(--slate)}
+.empty b{display:block;font-family:var(--fd);font-size:15px;color:var(--ink);margin-bottom:4px}
+.banner{background:#FFF6E0;border:1px solid #E8D18C;color:#6A5310;border-radius:12px;padding:11px 13px;
+  font-size:12.5px;margin-bottom:12px;line-height:1.4}
+.banner b{font-family:var(--fd)}
+.formula{font-family:var(--fn);font-size:10.5px;color:var(--mute);background:var(--field);
+  padding:7px 10px;border-radius:8px;margin-top:8px;line-height:1.55}
+.toast{position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom));transform:translate(-50%,14px);
+  background:var(--ink);color:#fff;padding:10px 16px;border-radius:22px;font-size:13px;z-index:60;
+  opacity:0;pointer-events:none;transition:all .24s}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* ══════════ SPEED ══════════
+   Taps register straight away, the page never rubber-bands into the app
+   behind it, and long lists only paint the rows actually on screen. */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+button,a,input,select,textarea,label,summary,[role=button]{touch-action:manipulation}
+body{overscroll-behavior-y:contain}
+.row{content-visibility:auto;contain-intrinsic-size:auto 64px}
+</style>
+
+<!-- ═══ OneStop: database sign-in + Home link. Loads before the app so every
+     database call carries the signed-in token. See os-auth.js. ═══ -->
+<script>window.OS_AUTH = { role:'owner', title:'Cash & accounts', home:'index.html' };</script>
+<script src="os-auth.js"></script>
+</head>
+<body>
+
+<header>
+  <div class="syncrow">
+    <div class="sync"><span class="dot" id="dot"></span><span id="syncTxt">Loading</span><span style="opacity:.55;margin-left:7px">v24aug-b</span></div>
+  </div>
+  <div class="brandrow">
+    <div class="brandbox">
+      <div class="brand">OneStop <span>DriveIn</span></div>
+    </div>
+    <div class="eyebrow">Cash &amp; Accounts</div>
+  </div>
+  <div class="hero">
+    <div class="lab" id="heroLab">Cash on hand</div>
+    <div class="big"><i>₹</i><span id="heroCash">0</span></div>
+    <div class="sub" id="heroSub">—</div>
+  </div>
+</header>
+
+<main>
+  <!-- ══════════ FOOD AND LODGE ACCOUNTS ══════════ -->
+  <section class="tab on" id="t-onestop">
+    <div id="cfgBanner"></div>
+    <div class="secttl" style="margin-top:2px">Food and lodge accounts</div>
+    <div id="osFilter"></div>
+    <div class="grid">
+      <div class="stat"><div class="k">Restaurant cash</div><div class="v in" id="s_rc">0</div></div>
+      <div class="stat"><div class="k">Room cash</div><div class="v in" id="s_rm">0</div></div>
+      <div class="stat"><div class="k">UPI collection</div><div class="v upi" id="s_up">0</div></div>
+      <div class="stat"><div class="k">Total collected</div><div class="v in" id="s_tin">0</div></div>
+      <div class="stat"><div class="k">Spent in cash</div><div class="v out" id="s_co">0</div></div>
+      <div class="stat"><div class="k">Spent by UPI</div><div class="v out" id="s_uo">0</div></div>
+      <div class="stat" id="s_soBox" style="display:none"><div class="k">Spent from self cash</div><div class="v out" id="s_so">0</div></div>
+      <div class="stat wide"><div class="k">Total spent</div><div class="v out" id="s_out">0</div></div>
+      <div class="stat"><div class="k" id="s_openK">Opening cash</div><div class="v" id="s_open">0</div></div>
+      <div class="stat"><div class="k" id="s_closeK">Closing cash</div><div class="v" id="s_close">0</div></div>
+      <div class="formula wide" id="s_chain" style="margin:0"></div>
+    </div>
+    <div class="formula" style="margin-top:9px" id="osScope"></div>
+    <div class="card" id="whyCard" style="margin-top:11px"></div>
+
+    <div class="btnrow" style="margin-top:12px">
+      <button class="btn out" id="btnExp">− Expense</button>
+      <button class="btn inn" id="btnCol">+ Collection</button>
+    </div>
+    <div class="btnrow"><button class="btn ghost" id="btnDayCopy">Copy today's report</button></div>
+
+    <div class="secttl">Food and lodge expenses</div>
+    <div class="card">
+      <div class="h">What went out on food and lodge</div>
+      <div class="sub">Restaurant and lodge running costs only. Hall costs are kept on the Hall tab.</div>
+      <div class="grid" style="margin-top:11px">
+        <div class="stat"><div class="k">Payments</div><div class="v" id="fx_n">0</div></div>
+        <div class="stat"><div class="k">Paid in cash</div><div class="v out" id="fx_cash">0</div></div>
+        <div class="stat"><div class="k">Paid by UPI</div><div class="v out" id="fx_upi">0</div></div>
+        <div class="stat" id="fx_selfBox" style="display:none"><div class="k">Paid from self cash</div><div class="v out" id="fx_self">0</div></div>
+        <div class="stat"><div class="k">Total spent</div><div class="v out" id="fx_tot">0</div></div>
+      </div>
+    </div>
+    <div class="secttl">Where the money went</div>
+    <div class="card" id="fx_cats"></div>
+    <div class="secttl">Expense entries</div>
+    <div id="fxList"></div>
+    <div class="btnrow"><button class="btn ghost" id="btnCsvFx">Export food and lodge expenses CSV</button></div>
+
+    <div class="secttl">Collection entries</div>
+    <div class="sub" style="margin:-3px 4px 8px">Every collection in this period. Tap one to change it or delete it.</div>
+    <div id="colList"></div>
+
+    <div class="secttl">Day book</div>
+    <div class="sub" style="margin:-3px 4px 8px">Opening and closing cash for every day in the period, one line each. Only cash out of the box moves the closing figure — UPI and self cash are shown beside it.</div>
+    <div class="btnrow" style="margin-top:0"><button class="btn ghost" id="btnDayBook">Show opening &amp; closing by day</button></div>
+    <div id="dayBook"></div>
+
+    <div class="secttl">Cash tape</div>
+    <div class="sub" style="margin:-3px 4px 8px">The tape is the cash box itself, so hall and asset payments still appear here.</div>
+    <div id="tape"></div>
+
+    <div class="secttl">Workbook check</div>
+    <div class="sub" style="margin:-3px 4px 8px">Every food and lodge line in the app, whatever period is showing above, against the workbook.</div>
+    <div class="card" id="wbCard"></div>
+    <div class="btnrow"><button class="btn ghost" id="btnWbBackup">Download a backup first</button></div>
+    <div class="btnrow"><button class="btn danger" id="btnWbRebuild">Delete and reload from the workbook</button></div>
+  </section>
+
+  <!-- ══════════ FUNCTION HALL ══════════ -->
+  <section class="tab" id="t-hall">
+    <div id="hallFilter"></div>
+
+    <div class="card">
+      <div class="h">Hall bookings</div>
+      <div class="sub">Keshavam · Achyutam · Madhavam</div>
+      <div class="chips" style="margin:11px 0 10px">
+        <button data-bv="upcoming" class="on">Upcoming</button>
+        <button data-bv="period">Chosen period</button>
+      </div>
+      <div class="grid">
+        <div class="stat"><div class="k">Bookings</div><div class="v" id="bk_n">0</div></div>
+        <div class="stat"><div class="k">Booking value</div><div class="v" id="bk_val">0</div></div>
+        <div class="stat"><div class="k">Received</div><div class="v in" id="bk_paid">0</div></div>
+        <div class="stat"><div class="k">Balance due</div><div class="v out" id="bk_due">0</div></div>
+      </div>
+      <div class="btnrow"><button class="btn gold" id="btnBook">Add booking</button></div>
+    </div>
+    <div id="bookList"></div>
+
+    <div class="secttl">Hall money</div>
+    <div class="card">
+      <div class="grid">
+        <div class="stat"><div class="k">Received</div><div class="v in" id="h_inc">0</div></div>
+        <div class="stat"><div class="k">SVS expense</div><div class="v out" id="h_exp">0</div></div>
+        <div class="stat wide"><div class="k">Net for the period</div><div class="v" id="h_net">0</div></div>
+      </div>
+      <div class="btnrow"><button class="btn" id="btnHall">Add SVS expense or payment</button></div>
+    </div>
+
+    <div class="secttl">Hall expenses</div>
+    <div class="card">
+      <div class="h">What went out on the hall</div>
+      <div class="sub">Kept fully apart. None of this is counted in the Food and Lodge totals.</div>
+      <div class="grid" style="margin-top:11px">
+        <div class="stat"><div class="k">Payments</div><div class="v" id="hx_n">0</div></div>
+        <div class="stat"><div class="k">Paid in cash</div><div class="v out" id="hx_cash">0</div></div>
+        <div class="stat"><div class="k">Paid by UPI</div><div class="v out" id="hx_upi">0</div></div>
+        <div class="stat"><div class="k">Paid by bank</div><div class="v out" id="hx_bank">0</div></div>
+        <div class="stat wide"><div class="k">Total hall expense</div><div class="v out" id="hx_tot">0</div></div>
+      </div>
+    </div>
+    <div class="secttl">Where the hall expense went</div>
+    <div class="card" id="h_cats"></div>
+    <div class="secttl">Hall expense entries</div>
+    <div id="hallOutList"></div>
+    <div class="secttl">Hall money received</div>
+    <div id="hallInList"></div>
+    <div class="btnrow"><button class="btn ghost" id="btnCsvHallExp">Export hall expenses CSV</button></div>
+    <div class="btnrow"><button class="btn ghost" id="btnCsvBook">Export bookings CSV</button></div>
+  </section>
+
+  <!-- ══════════ ASSETS ══════════ -->
+  <section class="tab" id="t-asset">
+    <div class="secttl" style="margin-top:2px">Assets</div>
+    <div id="asFilter"></div>
+    <div class="card">
+      <div class="h">Asset expenses</div>
+      <div class="sub">Anything bought that stays with the business — equipment, furniture, vehicles, civil work.</div>
+      <div class="grid" style="margin-top:11px">
+        <div class="stat"><div class="k">Items bought</div><div class="v" id="as_n">0</div></div>
+        <div class="stat"><div class="k">Spent on assets</div><div class="v out" id="as_tot">0</div></div>
+      </div>
+      <div class="btnrow"><button class="btn" id="btnAsset">Add asset expense</button></div>
+    </div>
+    <div class="secttl">By category</div>
+    <div class="card" id="as_cats"></div>
+    <div class="secttl">By place</div>
+    <div class="card" id="as_locs"></div>
+    <div class="secttl">Asset entries</div>
+    <div id="assetList"></div>
+    <div class="btnrow"><button class="btn ghost" id="btnCsvAsset">Export assets CSV</button></div>
+  </section>
+
+  <!-- ══════════ REPORT ══════════ -->
+  <section class="tab" id="t-report">
+    <div id="repFilter"></div>
+    <div id="repBody"></div>
+    <div class="btnrow">
+      <button class="btn ghost" id="btnCsvLed">Export tape CSV</button>
+      <button class="btn ghost" id="btnCsvHall">Export hall CSV</button>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <div class="h">How the numbers are worked out</div>
+      <div class="formula">
+        Total cash in = Restaurant cash + Room cash<br>
+        Closing cash = Opening + Total cash in − Cash out<br>
+        Opening = the closing figure of the line above, carried across days<br>
+        Difference = Physical cash − Closing cash<br>
+        UPI is collected and spent outside the cash box, so it never moves the closing figure.<br>
+        Self cash is the same — it counts as expenditure, but it is not taken out of the box.
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ HISTORY ══════════ -->
+  <section class="tab" id="t-hist">
+    <div class="secttl" style="margin-top:2px">History</div>
+    <div class="card">
+      <div class="h">Every change, kept</div>
+      <div class="sub">Whatever is added, edited or deleted is recorded here with the old and new figures.</div>
+      <div class="chips" style="margin:11px 0 0" id="histChips">
+        <button data-hf="all" class="on">Everything</button>
+        <button data-hf="deleted">Deleted</button>
+        <button data-hf="edited">Edited</button>
+        <button data-hf="added">Added</button>
+      </div>
+    </div>
+    <div id="histList"></div>
+    <div class="btnrow"><button class="btn ghost" id="btnHistCsv">Export history CSV</button></div>
+    <div class="btnrow"><button class="btn danger" id="btnHistClear">Clear history</button></div>
+  </section>
+</main>
+
+<nav>
+  <button class="on" data-tab="onestop"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-5h6v5"/></svg>Food &amp; Lodge</button>
+  <button data-tab="hall"><svg viewBox="0 0 24 24"><path d="M4 21V9l8-5 8 5v12M4 13h16M9 21v-4h6v4"/></svg>Hall</button>
+  <button data-tab="asset"><svg viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5 9 5 9-5zM3 12l9 5 9-5M3 16.5l9 5 9-5"/></svg>Assets</button>
+  <button data-tab="report"><svg viewBox="0 0 24 24"><path d="M5 21V10M12 21V4M19 21v-7"/></svg>Report</button>
+  <button data-tab="hist"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>History</button>
+</nav>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet">
+  <div class="sheettop">
+    <div class="gripbar"></div>
+    <div class="closerow"><button class="xbtn" id="sheetX" aria-label="Close">&times;</button></div>
+  </div>
+  <div id="sheetBody"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ══════════════════════════════════════════════════════════
+   1. SETTINGS — edit these two lines only
+   ══════════════════════════════════════════════════════════ */
+const FIREBASE_HOST = "https://attendance-and-salary-tr-20681-default-rtdb.asia-southeast1.firebasedatabase.app";
+const DB_PATH       = "onestop-accounts";
+/* ══════════════════════════════════════════════════════════ */
+
+/* Standard heads for a restaurant + lodge. Add your own from any category box. */
+const OS_CATS = ["Vegetables & greens","Meat & poultry","Fish & seafood","Dairy & eggs",
+  "Groceries & provisions","Bakery & roti","Beverages & cool drinks","Water supply",
+  "Gas & fuel","Coal & firewood","Packing & disposables","Kitchen equipment & utensils",
+  "Housekeeping & cleaning","Room & lodge supplies","Laundry",
+  "Staff salaries","Staff advances & tips","Transport & petrol",
+  "Repairs & maintenance","Construction & civil work","Electricity & utilities",
+  "Internet & phone","Licences, taxes & fees","Marketing & printing",
+  "Cash ↔ UPI transfer","Owner drawings","Miscellaneous"];
+
+const HALL_OUT_CATS = ["Decoration & flowers","Chairs, tables & tents","Stage & backdrop",
+  "Sound & lights","Labour & helpers","Cleaning & housekeeping","Electricity & generator",
+  "Water & tanker","Catering support","Kitchen supplies","Repairs & maintenance",
+  "Transport","Staff & tips","Licences & permissions","Marketing & bookings","Miscellaneous"];
+
+const HALLS = ["Keshavam","Achyutam","Madhavam"];
+const HALL_AC = ["AC","Non-AC"];                    // how the hall is being given for this booking
+const SLOTS = ["Morning","Evening","Full day"];
+const OCCASIONS = ["Wedding","Reception","Engagement","Birthday","Naming ceremony","Housewarming","Meeting / conference","Get-together","Other"];
+
+const HALL_IN_CATS = ["Hall booking rent","Advance received","Catering charges",
+  "Decoration charges","Extra hours & add-ons","Other income"];
+
+/* Assets — anything bought that stays with the business. */
+const ASSET_CATS = ["Kitchen equipment","Furniture & fixtures","Air conditioning & cooling",
+  "Electrical & wiring","Plumbing & sanitary","Building & civil work","Vehicles",
+  "Generator & power backup","CCTV & security","Computers, POS & billing","Sound & lighting",
+  "Lodge & room furnishing","Hall assets","Water plant & tanks","Land & property",
+  "Signage & branding","Major repairs to assets","Other assets"];
+const ASSET_LOCS = ["Restaurant","Lodge / rooms","Function hall","Kitchen","Common / outdoor","Other"];
+
+/* ══════════ WORKBOOK LINES — checked against OneStopDrivein_Account.xlsx ══════════
+   168 dated lines, 2 Jul 2026 to 19 Aug 2026, read straight off the Daily Accounts
+   sheet. Every line was checked against the sheet's own Closing Cash column and all
+   168 agree. The running balance is unbroken except on 1 Aug 2026, where the sheet
+   itself restarts the box at 34,900, on a row in the middle of 1 Aug. A fresh
+   count now sets the day's OPENING, so that same box is carried here as 48,716
+   (31 Jul closed at 18,716; the count added 30,000). Every closing figure from
+   1 Aug on is identical to the workbook's — 26,677 on 19 Aug either way. Opening cash is not
+   repeated on every line because the app carries it forward on its own.
+   WB below holds the workbook's own totals, used for the on-screen check. */
+const WB = { n:168, rc:297604, rm:213800, up:810952, co:526033, close:26677,
+             from:'2026-07-02', to:'2026-08-19' };
+
+const SEED=[{"d":"2026-07-02","ob":11306,"rc":1953,"rm":500,"up":8194},{"d":"2026-07-03","rc":5630,"rm":5000,"up":16331,"co":1000,"ds":"cleaning work"},{"d":"2026-07-04","co":10000,"ds":"chicken shiva"},{"d":"2026-07-04","co":530,"ds":"loose water"},{"d":"2026-07-04","co":200,"ds":"night rooms"},{"d":"2026-07-04","co":430,"ds":"egg"},{"d":"2026-07-04","rc":5554,"rm":10500,"up":18398,"co":180,"ds":"tissue"},{"d":"2026-07-05","co":400,"ds":"night rooms"},{"d":"2026-07-05","co":350,"ds":"curd"},{"d":"2026-07-05","co":175,"ds":"onions"},{"d":"2026-07-05","rc":6654,"rm":3000,"up":21159},{"d":"2026-07-06","co":3540,"ds":"cool drinks"},{"d":"2026-07-06","rc":3899,"rm":1500,"up":7013,"co":27000,"ds":"laxman salary"},{"d":"2026-07-06","co":960,"ds":"badam milk"},{"d":"2026-07-06","co":100,"ds":"venkatesh tip"},{"d":"2026-07-07","rc":4493,"rm":3500,"up":9707},{"d":"2026-07-08","co":200,"ds":"night rooms"},{"d":"2026-07-08","co":50,"ds":"scaner to cash"},{"d":"2026-07-08","rc":2816,"rm":4000,"co":100,"ds":"night rooms"},{"d":"2026-07-08","co":10,"ds":"cash to scaner"},{"d":"2026-07-09","rc":5530,"rm":8800,"up":26319},{"d":"2026-07-10","rc":5366,"rm":1500,"up":7273,"co":3700,"ds":"cool drinks"},{"d":"2026-07-10","co":100,"ds":"laxman uncle"},{"d":"2026-07-10","co":500,"ds":"night rooms"},{"d":"2026-07-10","co":5350,"ds":"milk center"},{"d":"2026-07-10","co":18215,"ds":"kiranam"},{"d":"2026-07-10","co":110,"ds":"petrol"},{"d":"2026-07-10","co":500,"ds":"transport"},{"d":"2026-07-10","co":3238,"ds":"onions garlic ect"},{"d":"2026-07-10","co":12400,"ds":"gas"},{"d":"2026-07-11","rc":7493,"rm":2200,"up":34571,"co":500,"ds":"cash to scaner"},{"d":"2026-07-11","co":975,"ds":"veg"},{"d":"2026-07-11","co":200,"ds":"kothimeera pudina"},{"d":"2026-07-11","co":110,"ds":"petrol"},{"d":"2026-07-12","rc":8026,"rm":1400,"up":29118,"co":330,"ds":"loose water"},{"d":"2026-07-12","co":100,"ds":"night rooms"},{"d":"2026-07-12","co":540,"ds":"water bottels"},{"d":"2026-07-11","co":550,"ds":"capsicum"},{"d":"2026-07-13","rc":1079,"rm":6000,"up":13131,"co":300,"ds":"night rooms"},{"d":"2026-07-13","co":100,"ds":"ladies tip"},{"d":"2026-07-14","rc":4351,"rm":2500,"up":13397,"co":2570,"ds":"cool drinks"},{"d":"2026-07-14","co":100,"ds":"night rooms"},{"d":"2026-07-14","co":1100,"ds":"curd"},{"d":"2026-07-14","co":1325,"ds":"eggs"},{"d":"2026-07-14","co":100,"ds":"soamp"},{"d":"2026-07-14","co":130,"ds":"petrol"},{"d":"2026-07-15","rc":10868,"rm":2700,"up":8434,"co":1000,"ds":"floor cleaner"},{"d":"2026-07-16","rc":3707,"up":15578,"co":100,"ds":"kothimeera pudina"},{"d":"2026-07-16","co":6000,"ds":"centring"},{"d":"2026-07-16","co":1800,"ds":"water bottels"},{"d":"2026-07-17","rc":3345,"rm":2500,"up":9018,"co":6800,"ds":"veera babu salary"},{"d":"2026-07-17","co":13500,"ds":"raju salary"},{"d":"2026-07-17","co":430,"ds":"loose water"},{"d":"2026-07-17","co":40,"ds":"loose water"},{"d":"2026-07-18","rc":3407,"rm":5500,"up":18916,"co":19200,"ds":"venkatesh salary"},{"d":"2026-07-18","co":75,"ds":"note book"},{"d":"2026-07-18","co":290,"ds":"cash to scaner"},{"d":"2026-07-18","co":3500,"ds":"cool drinks"},{"d":"2026-07-18","co":300,"ds":"wifi"},{"d":"2026-07-18","co":50,"ds":"scaner to cash"},{"d":"2026-07-19","rc":11504,"up":20278,"co":400,"ds":"dosa pappu"},{"d":"2026-07-19","co":770,"ds":"badam milk"},{"d":"2026-07-19","co":1150,"ds":"water bottels"},{"d":"2026-07-20","rc":3868,"up":6537,"co":1100,"ds":"eggs"},{"d":"2026-07-20","co":130,"ds":"petrol"},{"d":"2026-07-21","rc":7159,"rm":8200,"up":7261},{"d":"2026-07-22","rc":2828,"rm":3600,"up":8908,"co":80,"ds":"pachimrchi"},{"d":"2026-07-22","co":60,"ds":"tomoto"},{"d":"2026-07-22","co":1848,"ds":"0nions"},{"d":"2026-07-22","co":13074,"ds":"kiranam"},{"d":"2026-07-22","co":4040,"ds":"milk center"},{"d":"2026-07-22","co":500,"ds":"transport"},{"d":"2026-07-22","co":1800,"ds":"water bottels"},{"d":"2026-07-22","co":150,"ds":"petrol"},{"d":"2026-07-22","co":12400,"ds":"gas cylinder"},{"d":"2026-07-23","rc":5794,"rm":2500,"up":15826,"co":1000,"ds":"night rooms"},{"d":"2026-07-23","co":1000,"ds":"ladies cleaning"},{"d":"2026-07-24","rc":3968,"up":6648,"co":156,"ds":"exo bar"},{"d":"2026-07-24","co":110,"ds":"pachimirchi"},{"d":"2026-07-24","co":12000,"ds":"chicken shiva"},{"d":"2026-07-24","rm":6500,"co":4000,"ds":"mutton"},{"d":"2026-07-25","rc":5972,"rm":5500,"up":27941},{"d":"2026-07-26","rc":13259,"rm":2000,"up":32084},{"d":"2026-07-27","rc":1254,"rm":12700,"up":17563,"co":3300,"ds":"cool drinks"},{"d":"2026-07-27","co":700,"ds":"night rooms"},{"d":"2026-07-27","co":770,"ds":"badam milk"},{"d":"2026-07-27","co":750,"ds":"loose water"},{"d":"2026-07-27","co":2000,"ds":"manasa advance"},{"d":"2026-07-28","rc":4917,"rm":1000,"up":16432,"co":100,"ds":"ladies tip"},{"d":"2026-07-24","co":150,"ds":"tiffin plates"},{"d":"2026-07-24","co":110,"ds":"petol"},{"d":"2026-07-29","co":2200,"ds":"floor cleaner"},{"d":"2026-07-29","rc":2139,"rm":5500,"up":16733,"co":12600,"ds":"raju salary"},{"d":"2026-07-29","co":7200,"ds":"veera babu salary"},{"d":"2026-07-30","co":21000,"ds":"coal"},{"d":"2026-07-30","co":240,"ds":"venkatesh tip"},{"d":"2026-07-30","rc":5576,"rm":1800,"up":15506,"co":200,"ds":"bus charge babu"},{"d":"2026-07-31","rc":5842,"rm":4400,"up":11190,"co":4080,"ds":"cool drinks"},{"d":"2026-07-31","co":20,"ds":"cash to scaner"},{"d":"2026-07-31","co":3000,"ds":"trans port"},{"d":"2026-08-01","rc":9214,"rm":4500,"up":15571,"co":4200,"ds":"mutton"},{"d":"2026-08-01","co":700,"ds":"night rooms"},{"d":"2026-08-01","co":200,"ds":"petrol"},{"d":"2026-08-01","co":180,"ds":"sponze"},{"d":"2026-08-01","co":500,"ds":"centring kirai"},{"d":"2026-08-01","co":4400,"ds":"roti laxman"},{"d":"2026-08-01","co":17350,"ds":"ponnaiah salari"},{"d":"2026-08-01","ob":48716,"co":13000,"ds":"venkatesh salary"},{"d":"2026-08-01","co":5000,"ds":"laxman salary"},{"d":"2026-08-01","co":1229,"ds":"tips"},{"d":"2026-08-02","rc":8052,"rm":11900,"up":28402,"co":800,"ds":"night rooms"},{"d":"2026-08-02","co":900,"ds":"water bottels"},{"d":"2026-08-03","rc":10401,"up":17507,"co":1540,"ds":"badam milk"},{"d":"2026-08-03","co":11600,"ds":"gas cylinder"},{"d":"2026-08-04","rc":9599,"rm":5000,"up":14029,"co":15000,"ds":"chicken shiva"},{"d":"2026-08-04","co":2840,"ds":"cool drinks"},{"d":"2026-08-05","rc":7745,"rm":800,"up":19269,"co":800,"ds":"transport"},{"d":"2026-08-05","co":40,"ds":"tips"},{"d":"2026-08-05","co":500,"ds":"charging material"},{"d":"2026-08-06","rc":6705,"rm":7000,"up":17505,"co":500,"ds":"loose water"},{"d":"2026-08-06","co":2800,"ds":"j c b"},{"d":"2026-08-06","co":900,"ds":"water bottels"},{"d":"2026-08-06","co":7500,"ds":"sir"},{"d":"2026-08-07","rc":6276,"rm":2500,"up":16318,"co":160,"ds":"room tip"},{"d":"2026-08-07","co":5000,"ds":"j c b"},{"d":"2026-08-07","co":200,"ds":"batta"},{"d":"2026-08-08","rc":5706,"rm":8000,"up":29229,"co":2950,"ds":"cool drinks"},{"d":"2026-08-08","co":550,"ds":"amazon"},{"d":"2026-08-08","co":500,"ds":"joule point"},{"d":"2026-08-08","co":1000,"ds":"ac work"},{"d":"2026-08-09","rc":13289,"rm":5100,"up":25745,"co":3000,"ds":"pillar work"},{"d":"2026-08-09","co":200,"ds":"auto trans port"},{"d":"2026-08-10","rc":4420,"rm":3300,"up":15973,"co":1100,"ds":"night rooms"},{"d":"2026-08-10","co":670,"ds":"loose water"},{"d":"2026-08-10","co":11000,"ds":"fabrication material"},{"d":"2026-08-10","co":1540,"ds":"badam milk"},{"d":"2026-08-11","rc":4619,"rm":4500,"up":7526,"co":500,"ds":"elecrician"},{"d":"2026-08-11","co":300,"ds":"transport"},{"d":"2026-08-12","rc":2473,"rm":1500,"up":11519,"co":3300,"ds":"cool drinks"},{"d":"2026-08-12","co":3300,"ds":"j c b"},{"d":"2026-08-12","co":100,"ds":"batta"},{"d":"2026-08-12","co":500,"ds":"door transport"},{"d":"2026-08-13","rc":9011,"rm":2000,"up":20760},{"d":"2026-08-14","rc":4206,"rm":2300,"up":18524,"co":11200,"ds":"gas cylinder"},{"d":"2026-08-14","co":1800,"ds":"water bottels"},{"d":"2026-08-12","co":1000,"ds":"fabricator"},{"d":"2026-08-09","co":190,"ds":"eggs"},{"d":"2026-08-15","rc":11683,"rm":17500,"up":38896,"co":42300,"ds":"chef salary"},{"d":"2026-08-15","co":12700,"ds":"venkatesh salary"},{"d":"2026-08-16","rc":13470,"rm":8400,"up":27719,"co":10800,"ds":"watchmen salary"},{"d":"2026-08-16","co":5255,"ds":"cool drinks"},{"d":"2026-08-16","co":1540,"ds":"badam milk"},{"d":"2026-08-16","co":100,"ds":"traveller driver"},{"d":"2026-08-17","rc":8843,"rm":11700,"up":16431,"co":2000,"ds":"night rooms"},{"d":"2026-08-17","co":1098,"ds":"tips"},{"d":"2026-08-17","co":1100,"ds":"fabrication material"},{"d":"2026-08-18","rc":3641,"rm":3000,"up":10565,"co":9500,"ds":"dust"},{"d":"2026-08-18","co":100,"ds":"batta"},{"d":"2026-08-18","co":8800,"ds":"bricks"},{"d":"2026-08-18","co":200,"ds":"batta"},{"d":"2026-08-18","co":15000,"ds":"chicken shiva"},{"d":"2026-08-18","co":50,"ds":"ladies tip"},{"d":"2026-08-18","co":100,"ds":"savari driver"},{"d":"2026-08-18","co":3760,"ds":"curd paneer"},{"d":"2026-08-18","co":200,"ds":"fruits"},{"d":"2026-08-15","co":100,"ds":"ladies tip"},{"d":"2026-08-19","co":1300,"ds":"transport"},{"d":"2026-08-17","co":1850,"ds":"cleaning liquids"}];
+
+/* ---------- state ---------- */
+let DB = { ledger:[], hall:[], adv:[], bookings:[], assets:[], history:[],
+           cats:{os:[],hall:[],hallIn:[],asset:[]} };
+let TAB = "onestop";
+let HFILTER = 'all';
+let RANGE = {from:'2000-01-01', to:'2099-12-31', preset:'month'};   // shared by OneStop, Hall and Report
+let BOOKVIEW = 'upcoming';   // 'upcoming' = today onward, 'period' = the chosen range
+let saveTimer = null, dirty = false;
+
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const nf = new Intl.NumberFormat('en-IN',{maximumFractionDigits:0});
+const money = n => nf.format(Math.round(n||0));
+const uid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const istToday = () => new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata'}).format(new Date());
+/* n days before today in India, as YYYY-MM-DD. Used by the quick date chips. */
+const daysAgo = n => { const d = new Date(istToday()+'T00:00:00Z');
+  d.setUTCDate(d.getUTCDate()-n); return d.toISOString().slice(0,10); };
+const num = v => { const n = parseFloat(String(v).replace(/[^0-9.\-]/g,'')); return isNaN(n)?0:n; };
+function dLabel(d){
+  if(!d) return "No date";
+  const [y,m,dd] = d.split('-').map(Number);
+  const dt = new Date(Date.UTC(y,m-1,dd));
+  return dt.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',timeZone:'UTC'});
+}
+function mLabel(m){
+  if(!m) return "";
+  const [y,mm] = m.split('-').map(Number);
+  return new Date(Date.UTC(y,mm-1,1)).toLocaleDateString('en-GB',{month:'long',year:'numeric',timeZone:'UTC'});
+}
+function toast(msg){
+  const t = $('#toast'); t.textContent = msg; t.classList.add('on');
+  clearTimeout(t._t); t._t = setTimeout(()=>t.classList.remove('on'),1900);
+}
+
+/* ══════════ HISTORY — every add, edit and delete is kept ══════════ */
+const FIELD_LABEL = {
+  d:'Date', d2:'Ends on', amt:'Amount', co:'Cash paid out', uo:'UPI paid out',
+  rc:'Restaurant cash', rm:'Room cash', up:'UPI collection', ph:'Counted cash',
+  ob:'Counted opening', ds:'Details', cat:'Category', mode:'Paid by', pm:'Paid by',
+  ev:'Event', type:'Type', emp:'Person', g:'Advance given', r:'Recovered',
+  hall:'Hall', slot:'Session', occ:'Occasion', cust:'Customer', ph2:'Phone',
+  price:'Hall rent', paid:'Received so far', guests:'Guests', notes:'Notes',
+  ac:'AC / Non-AC', roy:'Royalty', lab:'Labour charges',
+  loc:'Where it is', vendor:'Shop or vendor', paidOn:'Received on', qty:'Quantity',
+  so:'Self cash'
+};
+const SKIP_FIELDS = ['id','link','hallLink','fromBooking','post'];
+const snapshot = o => JSON.parse(JSON.stringify(o || {}));
+const showVal = v => (v === undefined || v === null || v === '') ? '—' : String(v);
+function changeList(before, after){
+  const out = [];
+  const keys = new Set([...Object.keys(before||{}), ...Object.keys(after||{})]);
+  keys.forEach(k => {
+    if(SKIP_FIELDS.includes(k)) return;
+    const a = showVal(before ? before[k] : ''), b = showVal(after ? after[k] : '');
+    if(a !== b) out.push(`${FIELD_LABEL[k] || k}: ${a} → ${b}`);
+  });
+  return out;
+}
+/* action: 'added' | 'edited' | 'deleted' */
+function logHist(action, kind, label, amt, ch){
+  DB.history = DB.history || [];
+  DB.history.push({ id:uid(), ts:Date.now(), action, kind,
+                    label: label || '—', amt: num(amt) || 0, ch: ch || [] });
+  if(DB.history.length > 400) DB.history.splice(0, DB.history.length - 400);
+}
+/* Confirms an edit or a delete, and says plainly that it goes into History. */
+function askEdit(what){
+  return confirm(`Save the changes to this ${what}?\n\nThe old and the new figures will both be kept in the History tab.`);
+}
+function askDelete(what, extra){
+  return confirm(`Delete this ${what}?\n\n${extra ? extra + '\n\n' : ''}It cannot be undone, but the full entry will be kept in the History tab.`);
+}
+
+/* ══════════ THE CALCULATION — same as the workbook ══════════
+   Total cash in = Restaurant cash + Room cash      (F = C + D)
+   Closing       = Opening + Total in − Cash out    (I = B + F − G)
+   Opening       = previous line's closing          (B = I above)
+   Difference    = Physical − Closing               (K = J − I)
+   Lines stay in the order they were entered, exactly like sheet rows.
+   ═══════════════════════════════════════════════════════════ */
+/* The order every balance is walked in. Three rules, in this order:
+   1. the calendar, so a back-dated line can never open from a later day;
+   2. a fresh count first inside its own day, so a counted figure is the day's
+      OPENING cash — everything taken and spent that day is measured from it,
+      whenever during the day it happened to be typed;
+   3. otherwise the order the lines were entered.
+   chain(), walkBox() and closingParts() all use this, so the tape, the summary
+   card and the breakdown can never disagree about the same day. */
+const isReset = r => (r.ob !== undefined && r.ob !== null && r.ob !== '');
+const dayOrder = (a,b) =>
+  (a.r.d||'').localeCompare(b.r.d||'')
+  || (isReset(b.r) - isReset(a.r))
+  || a.i - b.i;
+const inDayOrder = rows => rows.map((r,i)=>({r,i})).sort(dayOrder).map(x=>x.r);
+
+function chain(){
+  let carry = 0;
+  /* FIX: the running balance must follow the calendar, not the order lines were
+     typed. A back-dated entry is pushed onto the end of DB.ledger, so walking the
+     array raw made a past day open from a later day's closing figure. Sorting by
+     date first — ties kept in the order they were entered — makes every day open
+     from the day before it. */
+  return inDayOrder(DB.ledger).map((r, i) => {
+    const reset  = isReset(r);
+    const open   = reset ? num(r.ob) : carry;
+    const cashIn = num(r.rc) + num(r.rm);
+    const close  = open + cashIn - num(r.co);
+    carry = close;
+    const hasPh  = (r.ph !== undefined && r.ph !== null && r.ph !== '');
+    return { r, i, open, cashIn, close, reset,
+             diff: hasPh ? num(r.ph) - close : null };
+  });
+}
+const cashOnHand = () => { const c = chain(); return c.length ? c[c.length-1].close : 0; };
+/* Two different questions, two different answers.
+   closingAsAt  — food and lodge only, hall and asset money left out, so it can be
+                  set beside the workbook. This is what the Food and Lodge tab shows.
+   boxAsAt      — every line, hall and assets included, because that is what is
+                  physically in the box for Triveni to count.
+   A fresh count restarts either run. UPI never touches the box either way. */
+function closingAsAt(d){ return walkBox(d, false); }
+function boxAsAt(d){ return walkBox(d, true); }
+function walkBox(d, everything){
+  if(!d) return 0;
+  /* FIX: same calendar order as chain(), so the summary card and the tape can
+     never disagree about the same day's closing figure. */
+  const rows = inDayOrder(DB.ledger.filter(r => (r.d||'') <= d && (everything || isFL(r))));
+  let bal = 0;
+  rows.forEach(r => {
+    if(isReset(r)) bal = num(r.ob);
+    bal += num(r.rc) + num(r.rm) - num(r.co);
+  });
+  return bal;
+}
+
+/* ══════════ DATE RANGE ══════════ */
+function shiftDay(d, n){
+  const [y,m,dd] = d.split('-').map(Number);
+  const t = new Date(Date.UTC(y,m-1,dd+n));
+  return t.toISOString().slice(0,10);
+}
+function allDates(){
+  const ds = [];
+  DB.ledger.forEach(r => r.d && ds.push(r.d));
+  DB.hall.forEach(r => r.d && ds.push(r.d));
+  DB.bookings.forEach(b => { if(b.d) ds.push(b.d); if(b.d2) ds.push(b.d2); });
+  ds.sort();
+  return ds.length ? ds : [istToday()];
+}
+function presetRange(p){
+  const t = istToday(), ds = allDates();
+  switch(p){
+    case 'today':  return {from:t, to:t, preset:p};
+    case 'yest':   return {from:shiftDay(t,-1), to:shiftDay(t,-1), preset:p};
+    case 'week':   return {from:shiftDay(t,-6), to:t, preset:p};
+    case 'month':  return {from:t.slice(0,8)+'01', to:t, preset:p};
+    case 'last': { const f = shiftDay(t.slice(0,8)+'01',-1);
+                   return {from:f.slice(0,8)+'01', to:f, preset:p}; }
+    default:       return {from:ds[0], to:ds[ds.length-1], preset:'all'};
+  }
+}
+const inRange = d => !!d && d >= RANGE.from && d <= RANGE.to;
+/* Day book open or shut. Kept on the device so it stays as it was left. */
+let DAYBOOK = localStorage.getItem('os_daybook') === '1';
+/* A back-dated entry saved outside the chosen period would vanish the moment
+   it is saved, which looks like it never saved at all. Stretch the period
+   just enough to keep it on screen, and say so. */
+function keepVisible(d){
+  if(!d || inRange(d)) return false;
+  RANGE = { from: d < RANGE.from ? d : RANGE.from,
+            to:   d > RANGE.to   ? d : RANGE.to, preset:'custom' };
+  return true;
+}
+function rangeLabel(){
+  if(RANGE.from === RANGE.to) return dLabel(RANGE.from);
+  const sameM = RANGE.from.slice(0,7) === RANGE.to.slice(0,7);
+  if(sameM && RANGE.from.slice(8) === '01' && RANGE.to >= istToday().slice(0,8)+'01')
+    return mLabel(RANGE.from);
+  return dLabel(RANGE.from) + ' — ' + dLabel(RANGE.to);
+}
+
+/* Totals for whatever period is on screen. Cash and UPI are kept apart:
+   only cash touches the box, so only cash out moves the closing balance. */
+function totals(){
+  const t = {rc:0,rm:0,up:0,co:0,uo:0,so:0,fxN:0,     // food and lodge only
+             hTapeIn:0,hTapeOut:0,                     // hall lines sitting on the cash tape
+             aTapeOut:0,                               // asset lines sitting on the cash tape
+             hallExp:0,hallInc:0,hallExpOff:0,hallIncOff:0,hallExpN:0,
+             hallExpCash:0,hallExpUpi:0,hallExpBank:0,
+             hallIncCash:0,hallIncUpi:0,hallIncBank:0,
+             assetExp:0,assetOff:0,assetN:0,assetOnTape:0};
+  (DB.assets||[]).forEach(r => { if(inRange(r.d)){
+    t.assetExp += num(r.amt); t.assetN++;
+    if(!r.link) t.assetOff += num(r.amt); else t.assetOnTape += num(r.amt); }});
+  /* Hall lines carry hall:1 when they were posted to the tape. They keep the cash
+     box true, but they are NOT food and lodge money, so they stay out of these
+     totals and are reported on the Hall tab instead. */
+  DB.ledger.forEach(r => { if(!inRange(r.d)) return;
+    if(r.hall){ t.hTapeIn  += num(r.rc)+num(r.rm)+num(r.up);
+                t.hTapeOut += num(r.co)+num(r.uo); return; }
+    if(r.asset){ t.aTapeOut += num(r.co)+num(r.uo); return; }
+    t.rc+=num(r.rc); t.rm+=num(r.rm); t.up+=num(r.up); t.co+=num(r.co); t.uo+=num(r.uo);
+    t.so+=num(r.so);
+    if(num(r.co)>0 || num(r.uo)>0 || num(r.so)>0) t.fxN++; });
+  DB.hall.forEach(r => { if(!inRange(r.d)) return;
+    const a = num(r.amt), m = r.mode;
+    if(r.type==='in'){ t.hallInc += a; if(!r.link) t.hallIncOff += a;
+      if(m==='UPI') t.hallIncUpi += a; else if(m==='Bank') t.hallIncBank += a; else t.hallIncCash += a; }
+    else { t.hallExp += a; t.hallExpN++; if(!r.link) t.hallExpOff += a;
+      if(m==='UPI') t.hallExpUpi += a; else if(m==='Bank') t.hallExpBank += a; else t.hallExpCash += a; } });
+  t.cashIn = t.rc + t.rm;          // what the box took in, food and lodge only
+  t.collected = t.cashIn + t.up;   // cash plus UPI
+  t.spent = t.co + t.uo + t.so;    // cash plus UPI plus self cash
+  t.net = t.collected - t.spent;
+  t.hallNet = t.hallInc - t.hallExp;
+  return t;
+}
+/* One rule, used everywhere: a tape line is food and lodge money only when it does
+   not belong to the Hall tab or the Assets tab. Hall and asset payments are real
+   cash and stay on the tape, but they are counted on their own tabs. */
+const isFL = r => !r.hall && !r.asset;
+/* How a payment was made, in one word, for lists and exports. */
+const payLabel = r => num(r.uo) ? 'UPI' : num(r.so) ? 'Self cash' : 'Cash';
+
+/* The food and lodge expense lines for the period — hall and asset lines left out. */
+/* Self cash (so) — money paid out of your own pocket, never out of the box. It is
+   a real expense and counts in every expenditure figure, but it does not appear in
+   walkBox or chain, so the closing balance is untouched. */
+const fxRows = () => DB.ledger
+  .filter(r => inRange(r.d) && isFL(r) && (num(r.co)>0 || num(r.uo)>0 || num(r.so)>0))
+  .sort((a,b)=>(b.d||'').localeCompare(a.d||''));
+
+/* The collection lines for the period — anything with money coming in.
+   A line that is only a counted-cash check still shows, so it can be removed. */
+const colRows = () => DB.ledger
+  .filter(r => inRange(r.d) && isFL(r) &&
+    (num(r.rc)>0 || num(r.rm)>0 || num(r.up)>0 ||
+     (r.ph!=='' && r.ph!==undefined && r.ph!==null) ||
+     (r.ob!=='' && r.ob!==undefined && r.ob!==null)))
+  .sort((a,b)=>(b.d||'').localeCompare(a.d||''));
+
+/* Category bars, used by every tab so the tabs look and read the same. */
+function barSplit(obj, colour, empty){
+  const list = Object.entries(obj).sort((a,b)=>b[1]-a[1]);
+  if(!list.length) return `<div class="empty" style="padding:14px"><b>Nothing in this period</b>${empty||'Add an entry and the split appears here.'}</div>`;
+  const max = list[0][1] || 1;
+  return list.map(([c,v])=>`<div class="splitline">
+      <div class="l"><span>${c}</span><b>₹${money(v)}</b></div>
+      <div class="catbar"><i style="width:${Math.max(4,v/max*100)}%;background:${colour}"></i></div>
+    </div>`).join('');
+}
+
+/* ══════════ FILTER BAR ══════════ */
+const PRESETS = [['today','Today'],['yest','Yesterday'],['week','Last 7 days'],
+                 ['month','This month'],['last','Last month'],['all','Everything']];
+function filterHTML(id){
+  return `<div class="filter">
+    <div class="chips">${PRESETS.map(([p,l])=>
+      `<button data-p="${p}" class="${RANGE.preset===p?'on':''}">${l}</button>`).join('')}</div>
+    <div class="rangebox">
+      <input type="date" id="${id}_f" value="${RANGE.from}" aria-label="From">
+      <span>to</span>
+      <input type="date" id="${id}_t" value="${RANGE.to}" aria-label="To">
+    </div></div>`;
+}
+function drawFilter(id){
+  const box = $('#'+id); if(!box) return;
+  box.innerHTML = filterHTML(id);
+  box.querySelectorAll('.chips button').forEach(b => {
+    b.onclick = () => { RANGE = presetRange(b.dataset.p); render(); };
+    /* scrollIntoView moves whatever scrolls nearest, which on a phone is the page
+       itself — it jumped the whole screen. Setting scrollLeft by hand moves the
+       strip and nothing else. */
+    if(b.classList.contains('on')){
+      const strip = b.parentElement;
+      strip.scrollLeft = b.offsetLeft - (strip.clientWidth - b.offsetWidth) / 2;
+    }
+  });
+  const f = $('#'+id+'_f'), tt = $('#'+id+'_t');
+  const upd = () => {
+    let a = f.value, b = tt.value;
+    if(!a || !b) return;
+    if(a > b){ const s = a; a = b; b = s; }
+    RANGE = {from:a, to:b, preset:'custom'}; render();
+  };
+  f.onchange = upd; tt.onchange = upd;
+}
+
+/* ══════════ CATEGORIES ══════════ */
+const catList = key => {
+  const base = key==='os' ? OS_CATS : key==='hall' ? HALL_OUT_CATS
+             : key==='asset' ? ASSET_CATS : HALL_IN_CATS;
+  const extra = (DB.cats && DB.cats[key]) ? DB.cats[key] : [];
+  return base.concat(extra.filter(c => !base.includes(c)));
+};
+function catOptions(key, sel){
+  return catList(key).map(c=>`<option${c===sel?' selected':''}>${c}</option>`).join('')
+    + `<option value="__new">+ New category…</option>`;
+}
+function catField(pfx, key, sel, label){
+  return `<div class="f"><label for="${pfx}_cat">${label||'Category'}</label>
+    <select id="${pfx}_cat">${catOptions(key, sel)}</select>
+    <input type="text" id="${pfx}_catNew" placeholder="Name the new category" style="display:none;margin-top:8px"></div>`;
+}
+function wireCat(pfx){
+  const s = $('#'+pfx+'_cat'), i = $('#'+pfx+'_catNew');
+  s.onchange = () => { i.style.display = s.value==='__new' ? 'block' : 'none'; if(s.value==='__new') i.focus(); };
+}
+function readCat(pfx, key){
+  const s = $('#'+pfx+'_cat'), i = $('#'+pfx+'_catNew');
+  if(s.value !== '__new') return s.value;
+  const v = i.value.trim();
+  if(!v) return null;
+  DB.cats[key] = DB.cats[key] || [];
+  if(!catList(key).includes(v)) DB.cats[key].push(v);
+  return v;
+}
+
+/* Reads an old description and suggests a head. Used for the workbook lines
+   and for the auto-tag button; every guess stays editable. */
+const CAT_RULES = [
+  [/salar|salari/, "Staff salaries"],
+  [/tip|batta|advance/, "Staff advances & tips"],
+  [/chicken|mutton|meat/, "Meat & poultry"],
+  [/fish|prawn/, "Fish & seafood"],
+  [/egg|curd|milk|paneer|butter/, "Dairy & eggs"],
+  [/kiranam|kirana|dosa pappu|rice|oil|masala|nuvvulu/, "Groceries & provisions"],
+  [/cool drink|limca|soda|juice/, "Beverages & cool drinks"],
+  [/water|tanker/, "Water supply"],
+  [/gas/, "Gas & fuel"],
+  [/coal|firewood/, "Coal & firewood"],
+  [/roti|bread|bun/, "Bakery & roti"],
+  [/onion|0nion|tomoto|tomato|veg|capsicum|kothimeera|pudina|mirchi|mrchi|garlic|fruit|greens/, "Vegetables & greens"],
+  [/petrol|petol|transport|trans port|bus charge|auto|savari|driver|travell/, "Transport & petrol"],
+  [/clean|floor cleaner|exo|soamp|soap|sponze|tissue|liquid/, "Housekeeping & cleaning"],
+  [/night room|room tip|rooms/, "Room & lodge supplies"],
+  [/wifi|internet|phone|recharge/, "Internet & phone"],
+  [/centring|pillar|brick|dust|fabricat|j c b|jcb|door|electrician|elecrician|ac work|charging material|sand|cement|steel/, "Construction & civil work"],
+  [/plate|utensil|vessel/, "Kitchen equipment & utensils"],
+  [/scaner|scanner|bank/, "Cash ↔ UPI transfer"],
+  [/^sir$|owner/, "Owner drawings"]
+];
+function guessCat(ds){
+  const s = (ds||'').toLowerCase().trim();
+  if(!s) return "Miscellaneous";
+  for(const [re,c] of CAT_RULES) if(re.test(s)) return c;
+  return "Miscellaneous";
+}
+
+/* ══════════ FIREBASE (REST — no SDK) ══════════ */
+const dbURL = () => FIREBASE_HOST.replace(/\/$/,'') + '/' + DB_PATH + '.json';
+function setSync(state, txt){
+  const d = $('#dot'); d.className = 'dot ' + state; $('#syncTxt').textContent = txt;
+}
+async function load(){
+  if(!FIREBASE_HOST.startsWith('http')){
+    DB.ledger = SEED.map(r => ({id:uid(),...r,cat: num(r.co)? guessCat(r.ds) : ""}));
+    setSync('err','Local only');
+    $('#cfgBanner').innerHTML = '<div class="banner"><b>Not syncing yet.</b> Add your Firebase database URL at the top of the file (FIREBASE_HOST) and reload. Until then the workbook data shows here but nothing you add will be kept.</div>';
+    return;
+  }
+  setSync('busy','Loading');
+  try{
+    const res = await fetch(dbURL());
+    const data = await res.json();
+    if(data && (data.ledger || data.hall || data.adv)){
+      DB.ledger = data.ledger || []; DB.hall = data.hall || []; DB.adv = data.adv || [];
+      DB.bookings = data.bookings || [];
+      DB.assets = data.assets || []; DB.history = data.history || [];
+      DB.cats = Object.assign({os:[],hall:[],hallIn:[],asset:[]}, data.cats || {});
+      setSync('ok','Synced');
+      repairAug1();
+    } else {
+      DB.ledger = SEED.map(r => ({id:uid(),...r,cat: num(r.co)? guessCat(r.ds) : ""}));
+      await save(true);
+      toast('Workbook data loaded — 168 lines, closing ₹26,677 on 19 Aug');
+    }
+  }catch(e){
+    DB.ledger = SEED.map(r => ({id:uid(),...r,cat: num(r.co)? guessCat(r.ds) : ""}));
+    setSync('err','Offline');
+    $('#cfgBanner').innerHTML = '<div class="banner"><b>Can\'t reach the database.</b> Check the connection, then reload. Anything you add now will not be kept.</div>';
+  }
+}
+/* ══════════ ONE-TIME REPAIR — 1 Aug fresh count ══════════
+   The workbook wrote the 1 Aug count of 34,900 onto a row in the MIDDLE of that
+   day, after the box had already run down to 4,900. Now that a fresh count sets
+   the day's OPENING, the same 34,900 would be applied before the day's spending
+   instead of after it, and every figure from 1 Aug onward would fall short by
+   13,816. Restated as an opening count the same box is 48,716 — 31 Jul closed at
+   18,716, and the workbook's count added 30,000 to it.
+   Runs at most once, only on a line that still holds the old figure, and only if
+   the 30,000 was never recorded as a collection instead. */
+function repairAug1(){
+  const r = DB.ledger.find(x => x.d === '2026-08-01' && num(x.ob) === 34900);
+  if(!r) return false;
+  r.ob = 48716;
+  logHist('edit','Fresh count','1 Aug opening count', 48716,
+          ['Counted opening ₹34,900 → ₹48,716',
+           'The workbook set this mid-day, after ₹13,816 had already gone out. A fresh count now opens the day, so the same box is ₹48,716.']);
+  queueSave();
+  toast('1 Aug opening count restated — figures now match the workbook');
+  return true;
+}
+
+function queueSave(){
+  if(!FIREBASE_HOST.startsWith('http')){ setSync('err','Local only'); return; }
+  dirty = true; setSync('busy','Saving');
+  clearTimeout(saveTimer); saveTimer = setTimeout(()=>save(),700);
+}
+async function save(silent){
+  if(!FIREBASE_HOST.startsWith('http')) return;
+  try{
+    await fetch(dbURL(),{method:'PUT',headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({...DB, updated: new Date().toISOString()})});
+    dirty = false; setSync('ok','Saved');
+  }catch(e){ setSync('err','Not saved'); if(!silent) toast('Could not save — check connection'); }
+}
+window.addEventListener('beforeunload', e => { if(dirty){ e.preventDefault(); e.returnValue=''; }});
+
+/* ══════════ SHEET (add / edit) ══════════ */
+function openSheet(html){
+  $('#sheetBody').innerHTML = html + `<button class="btn ghost cancel" id="sheetCancel">Close without saving</button>`;
+  $('#scrim').classList.add('on'); $('#sheet').classList.add('on');
+  $('#sheet').scrollTop = 0;
+  $('#sheetCancel').onclick = closeSheet;
+}
+function closeSheet(){
+  $('#scrim').classList.remove('on'); $('#sheet').classList.remove('on');
+  setTimeout(()=>{ if(!$('#sheet').classList.contains('on')) $('#sheetBody').innerHTML=''; },300);
+}
+$('#scrim').onclick = closeSheet;
+$('#sheetX').onclick = closeSheet;
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeSheet(); });
+
+/* ---- ledger entry ---- */
+/* Opening cash for a line: the closing figure of the line above it.
+   For a new entry that is simply whatever the box holds right now. */
+function openingFor(id){
+  const c = chain();
+  if(id){ const x = c.find(v => v.r.id === id); if(x) return {amt:x.open, after:null}; }
+  const last = c.length ? c[c.length-1] : null;
+  return {amt: last ? last.close : 0, after: last ? last.r.d : null};
+}
+function openingCallout(id){
+  const o = openingFor(id);
+  return `<div class="callout" id="openBox">
+    <div class="cr"><span class="ck">Opening cash</span><span class="cv">₹${money(o.amt)}</span></div>
+    <small>${o.after ? 'Carried forward from the closing balance on '+dLabel(o.after)
+                     : 'This is the first entry, so the box starts at zero.'}</small></div>`;
+}
+
+function entryChooser(){
+  openSheet(`
+    <h2>What are you recording?</h2>
+    <p class="note">Money going out, or money coming in.</p>
+    <button class="btn out" id="c_exp" style="margin-bottom:9px">− Expense</button>
+    <button class="btn inn" id="c_col">+ Cash &amp; UPI collection</button>
+  `);
+  $('#c_exp').onclick = () => expenseForm();
+  $('#c_col').onclick = () => collectionForm();
+}
+
+/* ---- expense ---- */
+function expenseForm(id){
+  const e = id ? DB.ledger.find(x=>x.id===id) : null;
+  const v = k => e && e[k]!==undefined && e[k]!==null ? e[k] : '';
+  const mode0 = e ? (num(e.uo) > 0 ? 'UPI' : num(e.so) > 0 ? 'Self' : 'Cash') : 'Cash';
+  const amt0  = e ? (num(e.uo) || num(e.so) || num(e.co) || '') : '';
+  const sel = m => mode0 === m ? ' selected' : '';
+  openSheet(`
+    <h2>${e?'Edit expense':'Expense'}</h2>
+    <p class="note">Money paid out. Only cash from the box moves the closing figure — UPI and self cash do not.</p>
+    <div class="callout" id="boxNow">
+      <div class="cr"><span class="ck">Cash in the box</span><span class="cv">₹${money(openingFor(id).amt)}</span></div>
+      <small id="boxNote">Paying from the box brings this down. UPI and self cash leave it unchanged.</small></div>
+    <div class="f"><label for="x_d">Date</label><input type="date" id="x_d" value="${e?(e.d||istToday()):istToday()}"></div>
+    <div class="f2">
+      <div class="f"><label for="x_amt">Amount</label><input type="number" inputmode="numeric" id="x_amt" value="${amt0}" placeholder="0"></div>
+      <div class="f"><label for="x_pm">Paid by</label><select id="x_pm">
+        <option value="Cash"${sel('Cash')}>Cash from the box</option>
+        <option value="UPI"${sel('UPI')}>UPI</option>
+        <option value="Self"${sel('Self')}>Self cash — not from the box</option></select></div>
+    </div>
+    <div class="formula" style="margin:-4px 0 10px">Self cash is money you paid from your own pocket. It is counted in
+      total expenditure and in the category split, but the closing cash stays where it is.</div>
+    <div class="f"><label for="x_ds">What it was for</label><input type="text" id="x_ds" value="${(v('ds')+'').replace(/"/g,'&quot;')}" placeholder="chicken, gas cylinder, cleaning…"></div>
+    ${catField('x','os', e? (e.cat||'') : '')}
+    <button class="btn out" id="x_save">${e?'Save changes':'Add expense'}</button>
+    ${e?'<div class="btnrow"><button class="btn danger" id="x_del">Delete this expense</button></div>':''}
+  `);
+  wireCat('x');
+  const box = openingFor(id).amt, note = $('#boxNote');
+  const checkBox = () => {
+    const a = num($('#x_amt').value), m = $('#x_pm').value;
+    note.textContent =
+        m === 'UPI'  ? 'Paid by UPI, so the box is unchanged.'
+      : m === 'Self' ? 'Paid from your own cash, so the box is unchanged. It still counts in total expenditure.'
+      : a > box ? 'That is more than the box holds — check the amount or the counted balance.'
+      : a ? 'Leaves ₹' + money(box - a) + ' in the box.'
+          : 'Paying from the box brings this down. UPI and self cash leave it unchanged.';
+    $('#boxNow').style.borderLeftColor = (m === 'Cash' && a > box) ? 'var(--out)' : 'var(--gold)';
+  };
+  $('#x_amt').oninput = checkBox; $('#x_pm').onchange = checkBox;
+  $('#x_save').onclick = () => {
+    const amt = num($('#x_amt').value);
+    if(!amt){ toast('Enter an amount'); return; }
+    const cat = readCat('x','os');
+    if(cat===null){ toast('Name the new category first'); return; }
+    const m = $('#x_pm').value;
+    const rec = { d:$('#x_d').value, ds:$('#x_ds').value.trim(), cat,
+                  co: m==='Cash'?amt:'', uo: m==='UPI'?amt:'', so: m==='Self'?amt:'',
+                  pm: m==='Self'?'Self cash':m };
+    if(e){
+      if(!askEdit('expense')) return;
+      const before = snapshot(e);
+      Object.assign(e, rec);
+      logHist('edited','Expense', rec.ds || rec.cat, amt, changeList(before, snapshot(e)));
+    } else {
+      DB.ledger.push({id:uid(), rc:'', rm:'', up:'', ph:'', ob:'', so:'', ...rec});
+      logHist('added','Expense', rec.ds || rec.cat, amt,
+        [`Paid by: ${rec.pm}`, `Date: ${rec.d}`, `Category: ${cat}`]);
+    }
+    const widened = keepVisible(rec.d);
+    queueSave(); closeSheet(); render();
+    toast(widened ? (e?'Saved':'Added') + ' for ' + dLabel(rec.d) + ' — dates widened to show it'
+                  : (e?'Expense saved':'Expense added'));
+  };
+  if(e) $('#x_del').onclick = () => del(id, 'expense');
+}
+
+/* ---- collection ---- */
+function collectionForm(id){
+  const e = id ? DB.ledger.find(x=>x.id===id) : null;
+  const v = k => e && e[k]!==undefined && e[k]!==null ? e[k] : '';
+  openSheet(`
+    <h2>${e?'Edit collection':'Collection'}</h2>
+    <p class="note">What came in. Cash goes into the box; UPI is tracked beside it.</p>
+    ${openingCallout(id)}
+    <div class="f"><label for="y_d">Date <span style="color:var(--mute);font-weight:400">— pick any past date to enter a day you missed</span></label>
+      <input type="date" id="y_d" value="${e?(e.d||istToday()):istToday()}">
+      <div class="chips" style="margin-top:7px">
+        <button type="button" data-dq="0">Today</button>
+        <button type="button" data-dq="1">Yesterday</button>
+        <button type="button" data-dq="2">2 days ago</button>
+        <button type="button" data-dq="3">3 days ago</button>
+      </div>
+    </div>
+    <div class="f2">
+      <div class="f"><label for="y_rc">Restaurant cash</label><input type="number" inputmode="numeric" id="y_rc" value="${v('rc')}" placeholder="0"></div>
+      <div class="f"><label for="y_rm">Room cash</label><input type="number" inputmode="numeric" id="y_rm" value="${v('rm')}" placeholder="0"></div>
+    </div>
+    <div class="f"><label for="y_up">UPI collection</label><input type="number" inputmode="numeric" id="y_up" value="${v('up')}" placeholder="0"></div>
+    <div class="f"><label for="y_ds">Note</label><input type="text" id="y_ds" value="${(v('ds')+'').replace(/"/g,'&quot;')}" placeholder="optional"></div>
+    <div class="f"><label for="y_ph">Counted cash in the box</label><input type="number" inputmode="numeric" id="y_ph" value="${v('ph')}" placeholder="optional — checks the closing figure"></div>
+    <div class="chk">
+      <input type="checkbox" id="y_reset" ${e&&e.ob!==undefined&&e.ob!==null&&e.ob!==''?'checked':''}>
+      <div>Start from a fresh count
+        <small>Use only after counting the box. Otherwise opening carries down from the line above.</small></div>
+    </div>
+    <div class="f" id="y_obWrap" style="display:none"><label for="y_ob">Counted opening cash</label>
+      <input type="number" inputmode="numeric" id="y_ob" value="${v('ob')}" placeholder="0"></div>
+    <button class="btn inn" id="y_save">${e?'Save changes':'Add collection'}</button>
+    ${e?'<div class="btnrow"><button class="btn danger" id="y_del">Delete this collection</button></div>':''}
+  `);
+  const chk = $('#y_reset'), wrap = $('#y_obWrap');
+  const sync = () => {
+    wrap.style.display = chk.checked ? 'block' : 'none';
+    $('#openBox').classList.toggle('off', chk.checked);
+    $('#openBox').querySelector('small').textContent = chk.checked
+      ? 'Replaced by the counted figure you enter below.'
+      : openingFor(id).after
+        ? 'Carried forward from the closing balance on ' + dLabel(openingFor(id).after)
+        : 'This is the first entry, so the box starts at zero.';
+  };
+  chk.onchange = sync; sync();
+  const dq = () => document.querySelectorAll('[data-dq]').forEach(b =>
+    b.classList.toggle('on', $('#y_d').value === daysAgo(+b.dataset.dq)));
+  document.querySelectorAll('[data-dq]').forEach(b =>
+    b.onclick = () => { $('#y_d').value = daysAgo(+b.dataset.dq); dq(); });
+  $('#y_d').onchange = dq; dq();
+  $('#y_save').onclick = () => {
+    const rec = { d:$('#y_d').value, rc:num($('#y_rc').value)||'', rm:num($('#y_rm').value)||'',
+      up:num($('#y_up').value)||'', ds:$('#y_ds').value.trim(),
+      ph:$('#y_ph').value===''?'':num($('#y_ph').value),
+      ob: chk.checked ? num($('#y_ob').value) : '' };
+    if(!rec.rc && !rec.rm && !rec.up && rec.ph==='' && rec.ob===''){
+      toast('Enter what came in, or set a counted figure'); return; }
+    const inAmt = num(rec.rc) + num(rec.rm) + num(rec.up);
+    if(e){
+      if(!askEdit('collection')) return;
+      const before = snapshot(e);
+      Object.assign(e, rec);
+      logHist('edited','Collection', rec.ds || dLabel(rec.d) + ' collection', inAmt,
+        changeList(before, snapshot(e)));
+    } else {
+      DB.ledger.push({id:uid(), co:'', uo:'', cat:'', ...rec});
+      logHist('added','Collection', rec.ds || dLabel(rec.d) + ' collection', inAmt,
+        [`Restaurant: ${showVal(rec.rc)}`, `Room: ${showVal(rec.rm)}`, `UPI: ${showVal(rec.up)}`]);
+    }
+    const widened = keepVisible(rec.d);
+    queueSave(); closeSheet(); render();
+    toast(widened ? (e?'Saved':'Added') + ' for ' + dLabel(rec.d) + ' — dates widened to show it'
+                  : (e?'Collection saved':'Collection added'));
+  };
+  if(e) $('#y_del').onclick = () => del(id, 'collection');
+}
+
+function del(id, what){
+  const r = DB.ledger.find(x=>x.id===id);
+  if(!r) return;
+  if(!askDelete(what, 'The running cash on every line below it will shift.')) return;
+  const before = snapshot(r);
+  const amt = num(r.co)+num(r.uo)+num(r.so) || num(r.rc)+num(r.rm)+num(r.up);
+  logHist('deleted', what.charAt(0).toUpperCase()+what.slice(1),
+    r.ds || r.cat || dLabel(r.d), amt, changeList(before, {}));
+  DB.ledger = DB.ledger.filter(x=>x.id!==id);
+  /* an SVS or asset entry may point at this line — drop the dangling link */
+  DB.hall.forEach(h => { if(h.link === id) delete h.link; });
+  DB.assets.forEach(a => { if(a.link === id) delete a.link; });
+  queueSave(); closeSheet(); render(); toast('Deleted — kept in History');
+}
+const isExpense = r => num(r.co) > 0 || num(r.uo) > 0 || num(r.so) > 0;
+const hasIn = r => num(r.rc) > 0 || num(r.rm) > 0 || num(r.up) > 0;
+/* Some workbook lines carry a collection AND a payment on the same row.
+   Opening the wrong form on those would wipe the other half, so ask first. */
+const editLine = id => {
+  const r = DB.ledger.find(x=>x.id===id);
+  if(!r) return;
+  if(isExpense(r) && hasIn(r)){
+    openSheet(`
+      <h2>This line has both</h2>
+      <p class="note">${dLabel(r.d)} — money came in and money went out on the same line. Which side do you want to open?</p>
+      <button class="btn out" id="p_exp" style="margin-bottom:9px">− Payment · ₹${money(num(r.co)+num(r.uo)+num(r.so))}${r.ds?' · '+r.ds:''}</button>
+      <button class="btn inn" id="p_col" style="margin-bottom:9px">+ Collection · ₹${money(num(r.rc)+num(r.rm)+num(r.up))}</button>
+      <button class="btn danger" id="p_del">Delete the whole line</button>
+    `);
+    $('#p_exp').onclick = () => expenseForm(id);
+    $('#p_col').onclick = () => collectionForm(id);
+    $('#p_del').onclick = () => del(id, 'entry');
+    return;
+  }
+  isExpense(r) ? expenseForm(id) : collectionForm(id);
+};
+
+/* ---- hall entry ---- */
+function hallForm(id){
+  const e = id ? DB.hall.find(x=>x.id===id) : null;
+  const v = k => e && e[k]!==undefined ? e[k] : '';
+  openSheet(`
+    <h2>${e?'Edit SVS entry':'SVS entry'}</h2>
+    <p class="note">SVS expense and money received for the convention hall.</p>
+    <div class="f"><label for="k_type">Type</label><select id="k_type">
+      <option value="out"${v('type')!=='in'?' selected':''}>SVS expense</option>
+      <option value="in"${v('type')==='in'?' selected':''}>Money received</option></select></div>
+    <div class="f"><label for="k_d">Date</label><input type="date" id="k_d" value="${e?(e.d||istToday()):istToday()}"></div>
+    ${catField('k', v('type')==='in'?'hallIn':'hall', v('cat'))}
+    <div class="f2">
+      <div class="f"><label for="k_amt">Amount</label><input type="number" inputmode="numeric" id="k_amt" value="${v('amt')}" placeholder="0"></div>
+      <div class="f"><label for="k_mode">Paid by</label><select id="k_mode">
+        ${['Cash','UPI','Bank'].map(m=>`<option${v('mode')===m?' selected':''}>${m}</option>`).join('')}</select></div>
+    </div>
+    <div class="f"><label for="k_ds">Details</label><input type="text" id="k_ds" value="${(v('ds')+'').replace(/"/g,'&quot;')}" placeholder="chairs for Reddy function…"></div>
+    <div class="f"><label for="k_ev">Event or party name</label><input type="text" id="k_ev" value="${(v('ev')+'').replace(/"/g,'&quot;')}" placeholder="optional"></div>
+    <div class="chk">
+      <input type="checkbox" id="k_post" ${e?(e.link?'checked':''):'checked'} ${e?'disabled':''}>
+      <div>Also show it on the OneStop tape
+        <small>${e?'Set when the entry was created — cannot be changed here.':'Keeps the day\'s cash and UPI totals complete. Bank transfers stay on this tab only.'}</small></div>
+    </div>
+    <button class="btn gold" id="k_save">${e?'Save changes':'Add entry'}</button>
+    ${e?'<div class="btnrow"><button class="btn danger" id="k_del">Delete this entry</button></div>':''}
+  `);
+  wireCat('k');
+  $('#k_type').onchange = () => {          // income and expense have different heads
+    const key = $('#k_type').value==='in' ? 'hallIn' : 'hall';
+    $('#k_cat').innerHTML = catOptions(key, '');
+    $('#k_catNew').style.display = 'none'; $('#k_catNew').value = '';
+  };
+  $('#k_save').onclick = () => {
+    const key = $('#k_type').value==='in' ? 'hallIn' : 'hall';
+    const cat = readCat('k', key);
+    if(cat===null){ toast('Name the new category first'); return; }
+    const rec = { cat, d:$('#k_d').value, type:$('#k_type').value,
+      amt:num($('#k_amt').value), mode:$('#k_mode').value, ds:$('#k_ds').value.trim(), ev:$('#k_ev').value.trim() };
+    if(!rec.amt){ toast('Enter an amount'); return; }
+    if(e){
+      if(!askEdit('SVS entry')) return;
+      const before = snapshot(e);
+      Object.assign(e, rec);
+      logHist('edited', rec.type==='in' ? 'Hall money received' : 'SVS expense',
+        rec.ds || rec.cat, rec.amt, changeList(before, snapshot(e)));
+      if(e.link){ const l = DB.ledger.find(x=>x.id===e.link);
+        if(l){ l.d=rec.d; l.cat=rec.cat; l.ds='Hall — '+(rec.ds||rec.cat); l.pm=rec.mode;
+               l.rc=''; l.rm=''; l.up=''; l.co=''; l.uo='';
+               if(rec.type==='in'){ if(rec.mode==='UPI') l.up=rec.amt; else l.rm=rec.amt; }
+               else { if(rec.mode==='UPI') l.uo=rec.amt; else l.co=rec.amt; } } }
+    } else {
+      const h = {id:uid(),...rec};
+      if($('#k_post').checked && rec.mode!=='Bank'){
+        const l = {id:uid(), d:rec.d, cat:rec.cat, pm:rec.mode, ds:'Hall — '+(rec.ds||rec.cat),
+                   rc:'', rm:'', up:'', co:'', uo:'', ph:'', ob:'', hall:1};
+        if(rec.type==='in'){ if(rec.mode==='UPI') l.up = rec.amt; else l.rm = rec.amt; }
+        else { if(rec.mode==='UPI') l.uo = rec.amt; else l.co = rec.amt; }
+        DB.ledger.push(l); h.link = l.id;
+      }
+      DB.hall.push(h);
+      logHist('added', rec.type==='in' ? 'Hall money received' : 'SVS expense',
+        rec.ds || rec.cat, rec.amt,
+        [`Date: ${rec.d}`, `Category: ${rec.cat}`, `Paid by: ${rec.mode}`,
+         h.link ? 'Also posted on the Food and Lodge tape' : 'Kept on the Hall tab only']);
+    }
+    queueSave(); closeSheet(); render(); toast(e?'Entry saved':'SVS entry added');
+  };
+  if(e) $('#k_del').onclick = () => {
+    if(!askDelete('SVS entry', e.link ? 'The matching line on the Food and Lodge tape goes too.' : '')) return;
+    logHist('deleted', e.type==='in' ? 'Hall money received' : 'SVS expense',
+      e.ds || e.cat, e.amt, changeList(snapshot(e), {}));
+    if(e.link) DB.ledger = DB.ledger.filter(x=>x.id!==e.link);
+    DB.hall = DB.hall.filter(x=>x.id!==id);
+    queueSave(); closeSheet(); render(); toast('Deleted — kept in History');
+  };
+}
+
+/* ---- asset entry ---- */
+function assetForm(id){
+  const e = id ? DB.assets.find(x=>x.id===id) : null;
+  const v = k => e && e[k]!==undefined && e[k]!==null ? e[k] : '';
+  openSheet(`
+    <h2>${e?'Edit asset':'Asset expense'}</h2>
+    <p class="note">Something bought that stays with the business. Kept apart from the daily running costs.</p>
+    <div class="f"><label for="z_d">Date</label><input type="date" id="z_d" value="${e?(e.d||istToday()):istToday()}"></div>
+    <div class="f"><label for="z_ds">What was bought</label><input type="text" id="z_ds" value="${(v('ds')+'').replace(/"/g,'&quot;')}" placeholder="deep fryer, 20 chairs, CCTV set…"></div>
+    ${catField('z','asset', v('cat'))}
+    <div class="f2">
+      <div class="f"><label for="z_amt">Amount</label><input type="number" inputmode="numeric" id="z_amt" value="${v('amt')}" placeholder="0"></div>
+      <div class="f"><label for="z_qty">Quantity</label><input type="number" inputmode="numeric" id="z_qty" value="${v('qty')}" placeholder="optional"></div>
+    </div>
+    <div class="f2">
+      <div class="f"><label for="z_mode">Paid by</label><select id="z_mode">
+        ${['Cash','UPI','Bank'].map(m=>`<option${v('mode')===m?' selected':''}>${m}</option>`).join('')}</select></div>
+      <div class="f"><label for="z_loc">Where it is</label><select id="z_loc">
+        ${ASSET_LOCS.map(m=>`<option${v('loc')===m?' selected':''}>${m}</option>`).join('')}</select></div>
+    </div>
+    <div class="f"><label for="z_vendor">Shop or vendor</label><input type="text" id="z_vendor" value="${(v('vendor')+'').replace(/"/g,'&quot;')}" placeholder="optional"></div>
+    <div class="f"><label for="z_notes">Notes</label><textarea id="z_notes" rows="2" placeholder="Bill number, warranty, anything worth remembering">${v('notes')}</textarea></div>
+    <div class="chk">
+      <input type="checkbox" id="z_post" ${e?(e.link?'checked':''):'checked'} ${e?'disabled':''}>
+      <div>Also take it off the cash tape
+        <small>${e?'Set when the entry was created — cannot be changed here.':'Keeps the cash box true. Bank payments stay on this tab only.'}</small></div>
+    </div>
+    <button class="btn" id="z_save">${e?'Save changes':'Add asset'}</button>
+    ${e?'<div class="btnrow"><button class="btn danger" id="z_del">Delete this asset</button></div>':''}
+  `);
+  wireCat('z');
+  $('#z_save').onclick = () => {
+    const cat = readCat('z','asset');
+    if(cat===null){ toast('Name the new category first'); return; }
+    const rec = { d:$('#z_d').value, cat, amt:num($('#z_amt').value), qty:num($('#z_qty').value)||'',
+      mode:$('#z_mode').value, loc:$('#z_loc').value, ds:$('#z_ds').value.trim(),
+      vendor:$('#z_vendor').value.trim(), notes:$('#z_notes').value.trim() };
+    if(!rec.amt){ toast('Enter an amount'); return; }
+    if(!rec.ds){ toast('Say what was bought'); return; }
+    if(e){
+      if(!askEdit('asset')) return;
+      const before = snapshot(e);
+      Object.assign(e, rec);
+      logHist('edited','Asset', rec.ds, rec.amt, changeList(before, snapshot(e)));
+      if(e.link){ const l = DB.ledger.find(x=>x.id===e.link);
+        if(l){ l.d=rec.d; l.cat=rec.cat; l.ds='Asset — '+rec.ds; l.pm=rec.mode;
+               l.co=''; l.uo=''; if(rec.mode==='UPI') l.uo=rec.amt; else l.co=rec.amt; } }
+    } else {
+      const a = {id:uid(), ...rec};
+      if($('#z_post').checked && rec.mode!=='Bank'){
+        const l = {id:uid(), d:rec.d, cat:rec.cat, pm:rec.mode, ds:'Asset — '+rec.ds,
+                   rc:'', rm:'', up:'', co:'', uo:'', ph:'', ob:'', asset:1};
+        if(rec.mode==='UPI') l.uo = rec.amt; else l.co = rec.amt;
+        DB.ledger.push(l); a.link = l.id;
+      }
+      DB.assets.push(a);
+      logHist('added','Asset', rec.ds, rec.amt,
+        [`Date: ${rec.d}`, `Category: ${rec.cat}`, `Where: ${rec.loc}`, `Paid by: ${rec.mode}`,
+         a.link ? 'Also taken off the cash tape' : 'Kept on the Assets tab only']);
+    }
+    queueSave(); closeSheet(); render(); toast(e?'Asset saved':'Asset added');
+  };
+  if(e) $('#z_del').onclick = () => {
+    if(!askDelete('asset', e.link ? 'The matching line on the cash tape goes too.' : '')) return;
+    logHist('deleted','Asset', e.ds || e.cat, e.amt, changeList(snapshot(e), {}));
+    if(e.link) DB.ledger = DB.ledger.filter(x=>x.id!==e.link);
+    DB.assets = DB.assets.filter(x=>x.id!==id);
+    queueSave(); closeSheet(); render(); toast('Deleted — kept in History');
+  };
+}
+
+/* ---- hall bookings ---- */
+const bookDays = b => {                       // every date the hall is held
+  const out = []; let d = b.d;
+  const end = b.d2 && b.d2 > b.d ? b.d2 : b.d;
+  let guard = 0;
+  while(d <= end && guard++ < 40){ out.push(d); d = shiftDay(d,1); }
+  return out;
+};
+const bookInRange = b => bookDays(b).some(inRange);
+/* What the customer owes altogether: the hall rent plus royalty and labour when
+   they were charged. Older bookings have neither, so they simply count as zero. */
+const bookTotal = b => num(b.price) + num(b.roy) + num(b.lab);
+const bookDue   = b => Math.max(0, bookTotal(b) - num(b.paid));
+
+/* Puts the money received against a booking onto the hall ledger (and the
+   OneStop register when it came in as cash or UPI), replacing any earlier one. */
+function syncBookingMoney(bk){
+  if(bk.hallLink){
+    const old = DB.hall.find(x => x.id === bk.hallLink);
+    if(old && old.link) DB.ledger = DB.ledger.filter(l => l.id !== old.link);
+    DB.hall = DB.hall.filter(x => x.id !== bk.hallLink);
+    bk.hallLink = '';
+  }
+  if(!bk.post || !num(bk.paid)) return;
+  const tot = bookTotal(bk);
+  const label = `${bk.hall}${bk.ac ? ' ('+bk.ac+')' : ''} booking — ${bk.cust||'guest'}`;
+  const rec = { d: bk.paidOn || bk.d, type:'in',
+                cat: num(bk.paid) >= tot && tot ? 'Hall booking rent' : 'Advance received',
+                amt: num(bk.paid), mode: bk.mode || 'Cash', ds: label,
+                ev: `${bk.hall} · ${dLabel(bk.d)}` };
+  const entry = { id:uid(), ...rec, fromBooking: bk.id };
+  if(rec.mode !== 'Bank'){
+    const l = { id:uid(), d:rec.d, cat:rec.cat, pm:rec.mode, ds:'Hall — '+label,
+                rc:'', rm:'', up:'', co:'', uo:'', ph:'', ob:'', hall:1 };
+    if(rec.mode === 'UPI') l.up = rec.amt; else l.rm = rec.amt;
+    DB.ledger.push(l); entry.link = l.id;
+  }
+  DB.hall.push(entry); bk.hallLink = entry.id;
+}
+
+function bookingForm(id){
+  const e = id ? DB.bookings.find(x=>x.id===id) : null;
+  const v = k => e && e[k]!==undefined && e[k]!==null ? e[k] : '';
+  openSheet(`
+    <h2>${e?'Edit booking':'Hall booking'}</h2>
+    <p class="note">Which hall, AC or not, which day, and what they agreed to pay. Royalty and labour are only filled in when you charge them.</p>
+    <div class="f2">
+      <div class="f"><label for="b_hall">Hall</label><select id="b_hall">
+        ${HALLS.map(x=>`<option${v('hall')===x?' selected':''}>${x}</option>`).join('')}</select></div>
+      <div class="f"><label for="b_ac">AC or Non-AC</label><select id="b_ac">
+        ${HALL_AC.map(x=>`<option${(v('ac')||'AC')===x?' selected':''}>${x}</option>`).join('')}</select></div>
+    </div>
+    <div class="f2">
+      <div class="f"><label for="b_d">Function date</label><input type="date" id="b_d" value="${e?(e.d||istToday()):istToday()}"></div>
+      <div class="f"><label for="b_d2">Ends on</label><input type="date" id="b_d2" value="${v('d2')}"></div>
+    </div>
+    <div class="f2">
+      <div class="f"><label for="b_slot">Session</label><select id="b_slot">
+        ${SLOTS.map(x=>`<option${v('slot')===x?' selected':''}>${x}</option>`).join('')}</select></div>
+      <div class="f"><label for="b_occ">Occasion</label><select id="b_occ">
+        ${OCCASIONS.map(x=>`<option${v('occ')===x?' selected':''}>${x}</option>`).join('')}</select></div>
+    </div>
+
+    <div class="f"><label for="b_cust">Customer name</label><input type="text" id="b_cust" value="${(v('cust')+'').replace(/"/g,'&quot;')}" placeholder="Name of the person booking"></div>
+    <div class="f2">
+      <div class="f"><label for="b_ph">Phone</label><input type="tel" inputmode="tel" id="b_ph" value="${v('ph')}" placeholder="10 digits"></div>
+      <div class="f"><label for="b_guests">Guests expected</label><input type="number" inputmode="numeric" id="b_guests" value="${v('guests')}" placeholder="optional"></div>
+    </div>
+    ${e && e.ph ? `<div class="btnrow" style="margin:-2px 0 11px">
+      <a class="btn ghost" href="tel:${e.ph}">Call</a>
+      <a class="btn ghost" href="https://wa.me/91${(e.ph+'').replace(/\D/g,'').slice(-10)}" target="_blank" rel="noopener">WhatsApp</a></div>` : ''}
+
+    <div class="f2">
+      <div class="f"><label for="b_price">Hall rent</label><input type="number" inputmode="numeric" id="b_price" value="${v('price')}" placeholder="0"></div>
+      <div class="f"><label for="b_paid">Received so far</label><input type="number" inputmode="numeric" id="b_paid" value="${v('paid')}" placeholder="0"></div>
+    </div>
+    <div class="f2">
+      <div class="f"><label for="b_roy">Royalty</label><input type="number" inputmode="numeric" id="b_roy" value="${v('roy')}" placeholder="optional"></div>
+      <div class="f"><label for="b_lab">Labour charges</label><input type="number" inputmode="numeric" id="b_lab" value="${v('lab')}" placeholder="optional"></div>
+    </div>
+    <div class="callout" id="dueBox">
+      <div class="cr"><span class="ck">Total charged</span><span class="cv" id="totVal" style="font-size:15px;color:var(--slate)">₹0</span></div>
+      <div class="cr"><span class="ck">Balance due</span><span class="cv" id="dueVal">₹0</span></div>
+      <small id="dueNote">Fill in the rent and whatever has come in. Royalty and labour are added on when you enter them.</small></div>
+    <div class="f2">
+      <div class="f"><label for="b_mode">Received by</label><select id="b_mode">
+        ${['Cash','UPI','Bank'].map(m=>`<option${v('mode')===m?' selected':''}>${m}</option>`).join('')}</select></div>
+      <div class="f"><label for="b_paidOn">Received on</label><input type="date" id="b_paidOn" value="${v('paidOn')}"></div>
+    </div>
+    <div class="chk">
+      <input type="checkbox" id="b_post" ${e ? (e.post?'checked':'') : 'checked'}>
+      <div>Put this money on the books
+        <small>Records it as hall income, and on the OneStop register too when it came in as cash or UPI.</small></div>
+    </div>
+
+    <div class="f"><label for="b_notes">Other details</label><textarea id="b_notes" rows="3" placeholder="Catering, decoration, timings, anything agreed">${v('notes')}</textarea></div>
+    <button class="btn gold" id="b_save">${e?'Save booking':'Add booking'}</button>
+    ${e?'<div class="btnrow"><button class="btn danger" id="b_del">Delete this booking</button></div>':''}
+  `);
+  const due = () => {
+    const p = num($('#b_price').value), ry = num($('#b_roy').value), lb = num($('#b_lab').value);
+    const tot = p + ry + lb, r = num($('#b_paid').value), d = Math.max(0, tot - r);
+    $('#totVal').textContent = '₹'+money(tot);
+    $('#dueVal').textContent = '₹'+money(d);
+    $('#dueVal').style.color = d ? 'var(--out)' : 'var(--in)';
+    const extra = [ry?'royalty ₹'+money(ry):'', lb?'labour ₹'+money(lb):''].filter(Boolean).join(' and ');
+    $('#dueNote').textContent = !tot ? 'Fill in the rent and whatever has come in. Royalty and labour are added on when you enter them.'
+      : (extra ? 'Rent ₹'+money(p)+' plus '+extra+'. ' : '')
+        + (d ? 'To collect before or on the function day.' : 'Paid in full.');
+    $('#dueBox').style.borderLeftColor = d ? 'var(--out)' : 'var(--in)';
+  };
+  ['#b_price','#b_paid','#b_roy','#b_lab'].forEach(s => $(s).oninput = due);
+  due();
+
+  $('#b_save').onclick = () => {
+    const rec = { hall:$('#b_hall').value, ac:$('#b_ac').value, d:$('#b_d').value, d2:$('#b_d2').value,
+      slot:$('#b_slot').value, occ:$('#b_occ').value, cust:$('#b_cust').value.trim(),
+      ph:$('#b_ph').value.trim(), guests:num($('#b_guests').value)||'',
+      price:num($('#b_price').value), paid:num($('#b_paid').value),
+      roy:num($('#b_roy').value)||'', lab:num($('#b_lab').value)||'',
+      mode:$('#b_mode').value, paidOn:$('#b_paidOn').value, post:$('#b_post').checked,
+      notes:$('#b_notes').value.trim() };
+    if(!rec.cust){ toast('Enter the customer name'); return; }
+    if(!rec.d){ toast('Pick the function date'); return; }
+    const days = bookDays(rec);
+    const clash = DB.bookings.find(b => b.id !== (e&&e.id) && b.hall === rec.hall
+      && (b.slot === rec.slot || b.slot === 'Full day' || rec.slot === 'Full day')
+      && bookDays(b).some(x => days.includes(x)));
+    if(clash && !confirm(`${rec.hall} is already booked on ${dLabel(clash.d)} for ${clash.cust} (${clash.slot}). Save this one as well?`)) return;
+    if(e && !askEdit('booking')) return;
+    const before = e ? snapshot(e) : null;
+    const bk = e || {id:uid(), hallLink:''};
+    Object.assign(bk, rec);
+    if(!e) DB.bookings.push(bk);
+    syncBookingMoney(bk);
+    const blabel = `${rec.hall} (${rec.ac}) — ${rec.cust}`;
+    if(e) logHist('edited','Hall booking', blabel, bookTotal(rec), changeList(before, snapshot(bk)));
+    else  logHist('added','Hall booking', blabel, bookTotal(rec),
+      [`Date: ${rec.d}`, `Session: ${rec.slot}`, `Occasion: ${rec.occ}`, `Hall: ${rec.hall} · ${rec.ac}`,
+       `Hall rent: ${rec.price}`, ...(rec.roy?[`Royalty: ${rec.roy}`]:[]), ...(rec.lab?[`Labour: ${rec.lab}`]:[]),
+       `Total charged: ${bookTotal(rec)}`, `Received so far: ${rec.paid}`, `Balance due: ${bookDue(rec)}`]);
+    queueSave(); closeSheet(); render(); toast(e?'Booking saved':'Booking added');
+  };
+  if(e) $('#b_del').onclick = () => {
+    if(!askDelete('booking', 'Any payment recorded with it comes off the books too.')) return;
+    logHist('deleted','Hall booking', `${e.hall}${e.ac?' ('+e.ac+')':''} — ${e.cust||'guest'}`, bookTotal(e), changeList(snapshot(e), {}));
+    e.post = false; syncBookingMoney(e);
+    DB.bookings = DB.bookings.filter(x=>x.id!==id);
+    queueSave(); closeSheet(); render(); toast('Deleted — kept in History');
+  };
+}
+
+/* ══════════ RENDER ══════════ */
+/* Only the tab on screen is drawn. The others are marked stale and drawn the
+   moment they are opened, so saving an entry no longer rebuilds five screens. */
+const TAB_DRAW = { onestop:()=>renderOneStop(), hall:()=>renderHall(), asset:()=>renderAssets(),
+                   report:()=>renderReport(), hist:()=>renderHistory() };
+let STALE = { onestop:1, hall:1, asset:1, report:1, hist:1 };
+function render(){
+  renderHero();
+  Object.keys(STALE).forEach(k => STALE[k] = 1);
+  paintTab();
+}
+function paintTab(){
+  if(!STALE[TAB]) return;
+  STALE[TAB] = 0;
+  (TAB_DRAW[TAB] || (()=>{}))();
+}
+
+/* ══════════ ASSETS ══════════ */
+function renderAssets(){
+  drawFilter('asFilter');
+  const rows = (DB.assets||[]).filter(r=>inRange(r.d)).sort((a,b)=>(b.d||'').localeCompare(a.d||''));
+  const tot = rows.reduce((s,r)=>s+num(r.amt),0);
+  $('#as_n').textContent   = rows.length;
+  $('#as_tot').textContent = '₹'+money(tot);
+
+  const split = (obj, colour) => {
+    const list = Object.entries(obj).sort((a,b)=>b[1]-a[1]);
+    const max = list.length ? list[0][1] : 1;
+    return list.length ? list.map(([c,v])=>`<div class="splitline">
+        <div class="l"><span>${c}</span><b>₹${money(v)}</b></div>
+        <div class="catbar"><i style="width:${Math.max(4,v/max*100)}%;background:${colour}"></i></div>
+      </div>`).join('')
+      : `<div class="empty" style="padding:14px"><b>Nothing in this period</b>Add an asset and the split appears here.</div>`;
+  };
+  const cats = {}, locs = {};
+  rows.forEach(r => { const c = r.cat||'Other assets', l = r.loc||'Other';
+    cats[c] = (cats[c]||0) + num(r.amt); locs[l] = (locs[l]||0) + num(r.amt); });
+  $('#as_cats').innerHTML = split(cats, '#2C4C5E');
+  $('#as_locs').innerHTML = split(locs, 'var(--hall)');
+
+  $('#assetList').innerHTML = rows.length ? rows.map(r=>`
+    <button class="row" data-id="${r.id}">
+      <div class="m"><div class="t">${r.ds || r.cat}${r.qty?' × '+r.qty:''}</div>
+        <div class="s wrap">${dLabel(r.d)} · ${r.cat} · ${r.loc||'—'} · ${r.mode}${r.vendor?' · '+r.vendor:''}${r.link?' · on tape':''}</div></div>
+      <div class="a" style="color:var(--out)">−₹${money(r.amt)}</div>
+    </button>`).join('')
+    : `<div class="empty"><b>No assets in this period</b>Use “Add asset expense” for anything bought that stays with the business.</div>`;
+  document.querySelectorAll('#assetList .row').forEach(b => b.onclick = () => assetForm(b.dataset.id));
+}
+
+/* ══════════ HISTORY ══════════ */
+function renderHistory(){
+  document.querySelectorAll('#histChips button').forEach(b =>
+    b.classList.toggle('on', b.dataset.hf === HFILTER));
+  const all = [...(DB.history||[])].sort((a,b)=>(b.ts||0)-(a.ts||0));
+  const rows = all.filter(h => HFILTER === 'all' || h.action === HFILTER);
+  if(!rows.length){
+    $('#histList').innerHTML = `<div class="empty"><b>Nothing recorded yet</b>${
+      all.length ? 'No '+HFILTER+' entries. Try another filter.'
+                 : 'From now on, anything added, edited or deleted shows up here.'}</div>`;
+    return;
+  }
+  const fmt = ts => new Date(ts).toLocaleString('en-GB',{day:'numeric',month:'short',
+    hour:'2-digit',minute:'2-digit',hour12:true,timeZone:'Asia/Kolkata'});
+  $('#histList').innerHTML = rows.slice(0,200).map(h=>`
+    <div class="hitem">
+      <div class="hhead">
+        <span class="badge ${h.action}">${h.action}</span>
+        <span class="hamt">${h.amt?'₹'+money(h.amt):''}</span>
+      </div>
+      <div class="hkind">${h.kind}</div>
+      <div class="hlabel">${h.label}</div>
+      ${h.ch && h.ch.length ? `<div class="hchg">${h.ch.map(c=>`<div>${c}</div>`).join('')}</div>` : ''}
+      <div class="htime">${fmt(h.ts)}</div>
+    </div>`).join('');
+}
+
+function renderHero(){
+  const now = cashOnHand();                    // the whole box, hall included
+  const closeAt = closingAsAt(RANGE.to);       // food and lodge only
+  /* When the chosen period ends on a past day, the big number follows the filter,
+     because that is the figure being checked against the register. Otherwise it is
+     simply the box as it stands. The label always says which one is on screen. */
+  const past = RANGE.to < istToday() && closeAt !== now;
+  $('#heroLab').textContent  = past ? 'Food and lodge closing on ' + dLabel(RANGE.to) : 'Cash on hand';
+  $('#heroCash').textContent = money(past ? closeAt : now);
+  const c = chain();
+  const last = c.length ? c.map(x=>x.r.d||'').sort().slice(-1)[0] : null;
+  const lastDiff = [...c].reverse().find(x=>x.diff!==null);
+  let sub;
+  if(past){
+    const otherPart = boxAsAt(RANGE.to) - closeAt;
+    sub = `Hall and asset money left out. The whole box holds <b>₹${money(now)}</b> today`
+        + (otherPart ? ` · hall and assets had ${otherPart < 0 ? 'taken' : 'added'} ₹${money(Math.abs(otherPart))} by that date` : '');
+  } else {
+    sub = last ? `Everything recorded, up to ${dLabel(last)}` : 'Nothing recorded yet';
+    if(lastDiff) sub += ` · Count was <b>${lastDiff.diff===0?'exact':(lastDiff.diff>0?'+':'')+money(lastDiff.diff)}</b>`;
+  }
+  $('#heroSub').innerHTML = sub;
+}
+
+/* ══════════ DAY BOOK ══════════
+   One line a day: what the box opened at, what came in, what went out, what it
+   closed at. The same chain() the tape uses, so the two can never disagree.
+   Whole box — hall and asset payments included — because that is the money
+   actually sitting in the box to be counted. */
+function renderDayBook(){
+  const box = $('#dayBook'), btn = $('#btnDayBook');
+  if(!box || !btn) return;
+  btn.textContent = DAYBOOK ? 'Hide opening & closing by day' : 'Show opening & closing by day';
+  if(!DAYBOOK){ box.innerHTML = ''; return; }
+
+  const byDay = new Map();
+  chain().forEach(x => { if(!inRange(x.r.d)) return;
+    const d = x.r.d || '';
+    if(!byDay.has(d)) byDay.set(d, []);
+    byDay.get(d).push(x); });
+  const days = [...byDay.entries()].sort((a,b) => b[0].localeCompare(a[0]));
+
+  if(!days.length){
+    box.innerHTML = `<div class="empty"><b>Nothing in this period</b>Choose a wider range to see the day book.</div>`;
+    return;
+  }
+  box.innerHTML = days.slice(0,400).map(([d, items]) => {
+    const open  = items[0].open;
+    const close = items[items.length-1].close;
+    const cin   = items.reduce((s,x) => s + x.cashIn, 0);
+    /* Only cash out of the box moves the closing figure. UPI and self cash are
+       real expenditure and are shown, but they are kept out of the sum. */
+    const out   = items.reduce((s,x) => s + num(x.r.co), 0);
+    const upiO  = items.reduce((s,x) => s + num(x.r.uo), 0);
+    const selfO = items.reduce((s,x) => s + num(x.r.so), 0);
+    const reset = items.find(x => x.reset);
+    const count = [...items].reverse().find(x => x.diff !== null);
+    const bits  = [`Opening ₹${money(open)}`, `cash in ₹${money(cin)}`, `cash out ₹${money(out)}`];
+    const aside = [];
+    if(upiO)  aside.push(`UPI ₹${money(upiO)}`);
+    if(selfO) aside.push(`self cash ₹${money(selfO)}`);
+    if(reset) bits.push(`fresh count set the opening to ₹${money(num(reset.r.ob))}`);
+    if(count) bits.push(`counted ${count.diff === 0 ? 'exact'
+                        : (count.diff > 0 ? '+' : '') + money(count.diff)}`);
+    return `<div class="row">
+      <div class="m"><div class="t">${dLabel(d)}${reset ? ' · fresh count' : ''}</div>
+        <div class="s wrap">${bits.join(' · ')}</div>
+        ${aside.length ? `<div class="s wrap" style="color:var(--upi)">Also spent ${aside.join(' · ')} — outside the box, so the closing figure does not move for it.</div>` : ''}</div>
+      <div class="a">₹${money(close)}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderOneStop(){
+  drawFilter('osFilter');
+  const t = totals();
+  $('#s_rc').textContent  = '₹'+money(t.rc);
+  $('#s_rm').textContent  = '₹'+money(t.rm);
+  $('#s_up').textContent  = '₹'+money(t.up);
+  $('#s_tin').textContent = '₹'+money(t.collected);
+  $('#s_co').textContent  = '₹'+money(t.co);
+  $('#s_uo').textContent  = '₹'+money(t.uo);
+  $('#s_so').textContent  = '₹'+money(t.so);
+  $('#s_soBox').style.display = t.so ? '' : 'none';
+  $('#s_out').textContent = '₹'+money(t.spent);
+
+  /* Say plainly what these figures leave out. */
+  const bits = [];
+  if(t.hTapeOut) bits.push(`hall expense ₹${money(t.hTapeOut)}`);
+  if(t.hTapeIn)  bits.push(`hall money received ₹${money(t.hTapeIn)}`);
+  if(t.aTapeOut) bits.push(`asset purchase ₹${money(t.aTapeOut)}`);
+
+  /* Closing for the period end, not for right now. These differ whenever anything
+     is dated after the period, which is the usual reason the app and the register
+     disagree. Say plainly which day the figure belongs to. */
+  /* Opening and closing are running balances — everything up to that day, not the
+     day's own takings. Showing both, with the sum between them, stops the closing
+     figure being read as money earned in the period. */
+  const openAt  = closingAsAt(shiftDay(RANGE.from, -1));
+  const closeAt = closingAsAt(RANGE.to), foodNow = closingAsAt(istToday());
+  $('#s_openK').textContent  = 'Opening on ' + dLabel(RANGE.from);
+  $('#s_open').textContent   = '₹' + money(openAt);
+  $('#s_closeK').textContent = 'Closing on ' + dLabel(RANGE.to);
+  $('#s_close').textContent  = '₹' + money(closeAt);
+  $('#s_close').style.color  = closeAt === foodNow ? 'var(--ink)' : 'var(--upi)';
+
+  /* If the sum does not come out, a fresh count inside the period reset the box. */
+  const moved = openAt + t.cashIn - t.co;
+  $('#s_chain').innerHTML = moved === closeAt
+    ? `₹${money(openAt)} opening + ₹${money(t.cashIn)} cash in − ₹${money(t.co)} cash out = <b>₹${money(closeAt)}</b>.
+       Both are the running balance of the whole box, not what ${RANGE.from===RANGE.to?'the day':'the period'} earned.`
+    : (() => { const rs = chain().filter(x => x.reset && inRange(x.r.d));
+        const last = rs.length ? rs[rs.length-1] : null;
+        return last
+          ? `A fresh count on ${dLabel(last.r.d)} set the box to <b>₹${money(num(last.r.ob))}</b> at the start of that day, so the opening figure does not simply add up to the closing one.`
+          : `A fresh count inside this period reset the box, so the opening figure does not simply add up to the closing one.`; })();
+
+  if(closeAt !== foodNow)
+    bits.push(`₹${money(Math.abs(foodNow - closeAt))} ${foodNow > closeAt ? 'came in' : 'went out'} after ${dLabel(RANGE.to)}`);
+
+  renderWhyCard();
+  $('#osScope').innerHTML = 'Food and lodge only. Hall money is counted on the Hall tab, assets on the Assets tab.'
+    + (bits.length ? `<br>Left out of these figures for ${rangeLabel()}: ${bits.join(' · ')}.` : '')
+    + (t.so ? `<br>Self cash of ₹${money(t.so)} is inside Total spent, but it never came out of the box, so the closing figure does not move for it.` : '');
+
+  /* ---- food and lodge expenses ---- */
+  const fx = fxRows();
+  const fxCash = fx.reduce((s,r)=>s+num(r.co),0);
+  const fxUpi  = fx.reduce((s,r)=>s+num(r.uo),0);
+  const fxSelf = fx.reduce((s,r)=>s+num(r.so),0);
+  $('#fx_n').textContent    = fx.length;
+  $('#fx_cash').textContent = '₹'+money(fxCash);
+  $('#fx_upi').textContent  = '₹'+money(fxUpi);
+  $('#fx_self').textContent = '₹'+money(fxSelf);
+  $('#fx_selfBox').style.display = fxSelf ? '' : 'none';
+  $('#fx_tot').textContent  = '₹'+money(fxCash+fxUpi+fxSelf);
+
+  const fxCats = {};
+  fx.forEach(r => { const k = r.cat || 'Not categorised';
+    fxCats[k] = (fxCats[k]||0) + num(r.co) + num(r.uo) + num(r.so); });
+  $('#fx_cats').innerHTML = barSplit(fxCats, '#2C4C5E', 'Categories appear once money goes out.');
+
+  $('#fxList').innerHTML = fx.length ? fx.map(r=>`
+    <button class="row" data-id="${r.id}">
+      <div class="m"><div class="t">${r.ds || r.cat || 'Payment'}</div>
+        <div class="s wrap">${dLabel(r.d)} · ${r.cat||'Not categorised'} · ${payLabel(r)}</div></div>
+      <div class="a" style="color:var(--out)">−₹${money(num(r.co)+num(r.uo)+num(r.so))}</div>
+    </button>`).join('')
+    : `<div class="empty"><b>Nothing spent in this period</b>Use “− Expense” to record a food or lodge payment.</div>`;
+  document.querySelectorAll('#fxList .row').forEach(b => b.onclick = () => editLine(b.dataset.id));
+
+  /* ---- collection entries ---- */
+  const cl = colRows();
+  $('#colList').innerHTML = cl.length ? cl.map(r=>{
+    const got = num(r.rc)+num(r.rm)+num(r.up);
+    const legs = [];
+    if(num(r.rc)) legs.push('Rest ₹'+money(r.rc));
+    if(num(r.rm)) legs.push('Room ₹'+money(r.rm));
+    if(num(r.up)) legs.push('UPI ₹'+money(r.up));
+    if(r.ph!=='' && r.ph!==undefined && r.ph!==null) legs.push('counted ₹'+money(r.ph));
+    if(r.ob!=='' && r.ob!==undefined && r.ob!==null) legs.push('fresh count');
+    return `<button class="row" data-id="${r.id}">
+      <div class="m"><div class="t">${r.ds || 'Collection'}</div>
+        <div class="s wrap">${dLabel(r.d)}${legs.length?' · '+legs.join(' · '):''}</div></div>
+      <div class="a" style="color:var(--in)">${got?'+₹'+money(got):'—'}</div>
+    </button>`; }).join('')
+    : `<div class="empty"><b>Nothing collected in this period</b>Use “+ Collection” to record money that came in. You can pick any date, including a past one.</div>`;
+  document.querySelectorAll('#colList .row').forEach(b => b.onclick = () => editLine(b.dataset.id));
+
+  // The running balance is worked out over every line ever entered, so it
+  // stays true; only the days inside the chosen period are drawn.
+  const c = chain();
+  const byDay = new Map();
+  c.forEach(x => { if(!inRange(x.r.d)) return;
+    const d = x.r.d || '';
+    if(!byDay.has(d)) byDay.set(d, []); byDay.get(d).push(x); });
+  const days = [...byDay.entries()].sort((a,b)=>b[0].localeCompare(a[0]));
+
+  if(!days.length){
+    $('#tape').innerHTML = `<div class="empty"><b>Nothing in this period</b>Choose a wider range, or record the first entry for ${rangeLabel()}.</div>`;
+    renderDayBook();
+    renderWbCard();
+    return;
+  }
+  $('#tape').innerHTML = days.slice(0,400).map(([d,items]) => {
+    const cin  = items.reduce((s,x)=>s+x.cashIn,0);
+    const upin = items.reduce((s,x)=>s+num(x.r.up),0);
+    /* Only the cash figure is shown here, because the opening and closing strips
+       directly below move by exactly this much. UPI and self cash are on the
+       expense card and in Total spent, but they never came out of the box. */
+    const out  = items.reduce((s,x)=>s+num(x.r.co),0);
+    const off  = items.reduce((s,x)=>s+num(x.r.uo)+num(x.r.so),0);
+    const open = items[0].open, close = items[items.length-1].close;
+    return `<div class="daygrp">
+      <div class="dayhd"><span class="dt">${dLabel(d)}</span>
+        <span class="dn">+${money(cin+upin)} · −${money(out)}${off?' <i style="font-style:normal;color:var(--upi)">(+₹'+money(off)+' outside the box)</i>':''}</span></div>
+      <div class="tape">
+        <div class="strip bkt">
+          <div class="striptop"><div class="chain">Opening cash</div>
+            <div class="chain"><b>₹${money(open)}</b></div></div></div>
+        ${items.map(stripHTML).join('')}
+        <div class="strip bkt">
+          <div class="striptop"><div class="chain">Closing cash</div>
+            <div class="chain"><b>₹${money(close)}</b></div></div></div>
+      </div>
+    </div>`;
+  }).join('');
+  document.querySelectorAll('#tape .strip[data-id]').forEach(b => b.onclick = () => editLine(b.dataset.id));
+  renderDayBook();
+  renderWbCard();
+}
+
+/* ══════════ WORKBOOK CHECK AND RELOAD ══════════
+   Counts every food and lodge line held in the app — the whole ledger, not just
+   the period on screen — and sets it beside the workbook's own totals. Lines that
+   belong to the Hall or the Assets tab sit on the tape but are not counted here. */
+function wbLive(){
+  const own = DB.ledger.filter(r => !r.hall && !r.asset);
+  const t = { n: own.length, rc:0, rm:0, up:0, co:0 };
+  own.forEach(r => { t.rc += num(r.rc); t.rm += num(r.rm); t.up += num(r.up); t.co += num(r.co); });
+  t.close  = cashOnHand();
+  t.linked = DB.ledger.length - own.length;
+  t.newer  = own.filter(r => (r.d||'') > WB.to).length;
+  return t;
+}
+/* Day by day, the workbook's own figures: date → {n, co, rc, rm, up}. */
+function wbDayMap(){
+  const m = {};
+  const cell = d => m[d] || (m[d] = {n:0, co:0, rc:0, rm:0, up:0});
+  SEED.forEach(r => { const a = cell(r.d);
+    if(num(r.co)){ a.n++; a.co += num(r.co); }
+    a.rc += num(r.rc); a.rm += num(r.rm); a.up += num(r.up); });
+  return m;
+}
+/* The same figures taken from the app, over the workbook's own dates only, and
+   ignoring hall and asset lines. Every date where anything disagrees is listed —
+   money out and money in both — so a single line that went missing cannot hide
+   inside a total that still adds up. */
+function wbDayDiff(){
+  const wbm = wbDayMap(), app = {};
+  const cell = d => app[d] || (app[d] = {n:0, co:0, rc:0, rm:0, up:0});
+  DB.ledger.forEach(r => {
+    if(r.hall || r.asset) return;
+    const d = r.d || '';
+    if(d < WB.from || d > WB.to) return;
+    const a = cell(d);
+    if(num(r.co) || num(r.uo)){ a.n++; a.co += num(r.co) + num(r.uo); }
+    a.rc += num(r.rc); a.rm += num(r.rm); a.up += num(r.up); });
+  const zero = {n:0, co:0, rc:0, rm:0, up:0};
+  const out = [];
+  new Set([...Object.keys(wbm), ...Object.keys(app)]).forEach(d => {
+    const w = wbm[d] || zero, a = app[d] || zero;
+    const why = [];
+    if(w.n  !== a.n ) why.push(`${a.n} payment${a.n===1?'':'s'} here, ${w.n} in the workbook`);
+    if(w.co !== a.co) why.push(`paid out ₹${money(a.co)} here, ₹${money(w.co)} in the workbook`);
+    if(w.rc !== a.rc) why.push(`restaurant cash ₹${money(a.rc)} here, ₹${money(w.rc)} in the workbook`);
+    if(w.rm !== a.rm) why.push(`room cash ₹${money(a.rm)} here, ₹${money(w.rm)} in the workbook`);
+    if(w.up !== a.up) why.push(`UPI ₹${money(a.up)} here, ₹${money(w.up)} in the workbook`);
+    if(why.length){
+      /* What that day does to the cash box: money in less cash paid out. */
+      const boxHere = a.rc + a.rm - a.co, boxWb = w.rc + w.rm - w.co;
+      out.push({d, why, box: boxHere - boxWb});
+    }
+  });
+  return { days: Object.keys(wbm).length, diff: out.sort((x,y)=>x.d.localeCompare(y.d)) };
+}
+/* Breaks a closing figure into the pieces it is made of, so a figure that looks
+   wrong can be traced instead of guessed at. A fresh count wipes everything before
+   it, so the walk starts at the last one on or before the day asked for. */
+function closingParts(d){
+  const rows = inDayOrder(DB.ledger.filter(r => (r.d||'') <= d));
+  let start = 0, base = 0, baseAt = null;
+  rows.forEach((r,i) => {
+    if(isReset(r)){ start = i; base = num(r.ob); baseAt = r.d; } });
+  const p = { base, baseAt, own:0, hall:0, asset:0, ownN:0, hallN:0, assetN:0 };
+  rows.slice(start).forEach(r => {
+    const eff = num(r.rc) + num(r.rm) - num(r.co);
+    if(r.hall){ p.hall += eff; p.hallN++; }
+    else if(r.asset){ p.asset += eff; p.assetN++; }
+    else { p.own += eff; p.ownN++; }
+  });
+  p.total = base + p.own + p.hall + p.asset;
+  return p;
+}
+/* What the workbook itself closes at on a given day. */
+function wbCloseAsAt(d){
+  let bal = 0;
+  inDayOrder(SEED.filter(r => r.d <= d)).forEach(r => {
+    if(isReset(r)) bal = num(r.ob);
+    bal += num(r.rc) + num(r.rm) - num(r.co); });
+  return bal;
+}
+function renderWhyCard(){
+  const box = $('#whyCard'); if(!box) return;
+  const d = RANGE.to, p = closingParts(d);
+  const inWb = d >= WB.from && d <= WB.to;
+  const wbc = inWb ? wbCloseAsAt(d) : null;
+  const shown = p.base + p.own;                    // hall and asset money both excluded
+  const gap = inWb ? shown - wbc : 0;
+  const line = (label, v, note) => `<div class="splitline"><div class="l">
+      <span>${label}</span><b style="font-variant-numeric:tabular-nums">${v<0?'−':'+'}₹${money(Math.abs(v))}</b></div>
+      ${note?`<div class="sub" style="margin:2px 0 0">${note}</div>`:''}</div>`;
+  box.innerHTML = `
+    <div class="h">How ₹${money(shown)} on ${dLabel(d)} is made up</div>
+    <div class="sub">Food and lodge lines dated on or before ${dLabel(d)}${
+      p.baseAt ? `, counting from the fresh count of ₹${money(p.base)} on ${dLabel(p.baseAt)}` : ''}. Hall and asset money are not counted here.</div>
+    <div style="margin-top:11px">
+      ${p.base ? line('Fresh count', p.base, `The box was set by hand on ${dLabel(p.baseAt)}, so nothing before it counts.`) : ''}
+      ${line('Food and lodge lines', p.own, `${p.ownN} line${p.ownN===1?'':'s'} — money in less cash paid out`)}
+      ${p.hallN  ? line('Hall lines (not counted)', 0, `${p.hallN} hall line${p.hallN===1?'':'s'} worth ₹${money(Math.abs(p.hall))} sit on the tape but are left out. They are counted on the Hall tab.`) : ''}
+      ${p.assetN ? line('Asset lines (not counted)', 0, `${p.assetN} asset line${p.assetN===1?'':'s'} worth ₹${money(Math.abs(p.asset))} sit on the tape but are left out. They are counted on the Assets tab.`) : ''}
+    </div>
+    ${inWb ? `<div class="formula" style="margin-top:11px">
+        Workbook closes at <b>₹${money(wbc)}</b> on ${dLabel(d)}.${gap === 0
+          ? ' This figure agrees with it exactly.'
+          : ` This figure is <b>₹${money(Math.abs(gap))} ${gap>0?'more':'less'}</b>. The day list below names the days it comes from.`}
+      </div>` : `<div class="formula" style="margin-top:11px">${dLabel(d)} is outside the workbook’s dates, so there is nothing to compare against.</div>`}`;
+}
+function renderWbCard(){
+  const box = $('#wbCard'); if(!box) return;
+  const t = wbLive();
+  const row = (label, wb, live, exact) => {
+    const ok = exact ? wb === live : Math.abs(wb - live) < 1;
+    return `<div class="splitline"><div class="l">
+      <span>${label} ${ok ? '<b style="color:var(--in)">✓</b>' : '<b style="color:var(--out)">✕</b>'}</span>
+      <b style="font-variant-numeric:tabular-nums">${exact ? live : '₹'+money(live)}</b></div>
+      <div class="sub" style="margin:2px 0 0">Workbook says ${exact ? wb : '₹'+money(wb)}</div></div>`;
+  };
+  const allOk = t.n===WB.n && t.rc===WB.rc && t.rm===WB.rm && t.up===WB.up && t.co===WB.co;
+  const dd = wbDayDiff();
+  const dayBlock = dd.diff.length
+    ? `<div class="banner" style="margin-top:11px"><b>${dd.diff.length} day${dd.diff.length>1?'s do':' does'} not match.</b>
+         Together they move the closing balance by
+         ₹${money(Math.abs(dd.diff.reduce((s,x)=>s+x.box,0)))}.</div>
+       <div style="margin-top:8px">${dd.diff.map(x => `
+         <div class="splitline"><div class="l">
+           <span>${dLabel(x.d)}</span>
+           <b style="color:${x.box > 0 ? 'var(--in)' : 'var(--out)'}">${x.box>0?'+':'−'}₹${money(Math.abs(x.box))} to the box</b></div>
+           <div class="sub" style="margin:2px 0 0">${x.why.join(' · ')}</div></div>`).join('')}</div>`
+    : `<div class="formula" style="margin-top:11px">Checked all ${dd.days} days in the workbook — money out and money in both.
+         Every one of them matches.</div>`;
+  box.innerHTML = `
+    <div class="h">${allOk && !dd.diff.length ? 'Matches the workbook' : 'Does not match the workbook'}</div>
+    <div class="sub">${allOk && !dd.diff.length
+      ? 'Every food and lodge figure in the app agrees with OneStopDrivein_Account.xlsx, day by day.'
+      : 'Something is off below. Reloading replaces the food and lodge lines with the workbook lines.'}</div>
+    <div style="margin-top:11px">
+      ${row('Lines', WB.n, t.n, true)}
+      ${row('Restaurant cash', WB.rc, t.rc)}
+      ${row('Room cash', WB.rm, t.rm)}
+      ${row('UPI collection', WB.up, t.up)}
+      ${row('Cash paid out', WB.co, t.co)}
+    </div>
+    ${dayBlock}
+    <div class="formula" style="margin-top:10px">Cash in the box now ₹${money(t.close)}.
+      The workbook closes at ₹${money(WB.close)} on ${dLabel(WB.to)}${
+      t.linked ? `, and ${t.linked} hall or asset line${t.linked>1?'s sit':' sits'} on the tape as well, so the two need not agree.` : '.'}
+      ${t.newer ? `<br>${t.newer} food and lodge line${t.newer>1?'s were':' was'} entered after ${dLabel(WB.to)} — those are yours, not the workbook's, and are left out of the day check.` : ''}</div>`;
+}
+/* Keeps a copy of everything on the phone before anything is thrown away. */
+function wbBackup(quiet){
+  const url = URL.createObjectURL(new Blob([JSON.stringify(DB,null,2)],{type:'application/json'}));
+  const a = document.createElement('a');
+  a.href = url; a.download = `onestop-accounts-backup-${istToday()}.json`; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1500);
+  if(!quiet) toast('Backup downloaded');
+}
+function wbRebuildSheet(){
+  const t = wbLive();
+  openSheet(`
+    <h2>Reload food and lodge</h2>
+    <p class="note">Every food and lodge line now in the app is thrown away and the ${WB.n} workbook
+      lines are put in their place. A backup file downloads first, on its own.</p>
+    <div class="callout">
+      <div class="cr"><span class="ck">Lines to be removed</span><span class="cv">${t.n}</span></div>
+      <div class="cr"><span class="ck">Lines to be loaded</span><span class="cv">${WB.n}</span></div>
+      <div class="cr"><span class="ck">Hall and asset lines kept</span><span class="cv">${t.linked}</span></div>
+      <small>Hall and asset lines are never touched — deleting them would break their own tabs.
+        Bookings, advances, categories and history all stay as they are.</small>
+    </div>
+    ${t.newer ? `<div class="banner"><b>${t.newer} line${t.newer>1?'s were':' was'} entered after ${dLabel(WB.to)}.</b>
+      Those are not in the workbook, so reloading everything would lose them. Keep them unless you know they are wrong.</div>` : ''}
+    <button class="btn ghost" id="wb_backup" style="margin-bottom:9px">Download the backup only</button>
+    ${t.newer ? `<button class="btn inn" id="wb_keep" style="margin-bottom:9px">Reload, and keep the ${t.newer} newer line${t.newer>1?'s':''}</button>` : ''}
+    <button class="btn danger" id="wb_all">Reload everything from the workbook</button>
+  `);
+  $('#wb_backup').onclick = () => wbBackup();
+  if($('#wb_keep')) $('#wb_keep').onclick = () => wbRebuild(true);
+  $('#wb_all').onclick = () => wbRebuild(false);
+}
+function wbRebuild(keepNewer){
+  const t = wbLive();
+  if(!confirm(`Replace ${t.n} food and lodge line${t.n===1?'':'s'} with the ${WB.n} workbook lines?\n\n`
+    + (keepNewer ? `The ${t.newer} line${t.newer>1?'s':''} dated after ${dLabel(WB.to)} will be kept.\n\n` : '')
+    + 'A backup downloads first. This cannot be undone from inside the app.')) return;
+  wbBackup(true);
+  const carry = DB.ledger.filter(r =>
+    r.hall || r.asset || (keepNewer && (r.d||'') > WB.to));
+  const dropped = DB.ledger.length - carry.length;
+  const fresh = SEED.map(r => ({ id:uid(), rc:'', rm:'', up:'', co:'', uo:'', ph:'', ob:'',
+                                 ...r, cat: num(r.co) ? guessCat(r.ds) : '' }));
+  carry.sort((a,b) => (a.d||'').localeCompare(b.d||''));
+  DB.ledger = fresh.concat(carry);
+  logHist('deleted','Food and lodge tape', `${dropped} line${dropped===1?'':'s'} cleared`, 0,
+          [`Restaurant cash: ₹${money(t.rc)} → ₹${money(WB.rc)}`,
+           `Room cash: ₹${money(t.rm)} → ₹${money(WB.rm)}`,
+           `UPI collection: ₹${money(t.up)} → ₹${money(WB.up)}`,
+           `Cash paid out: ₹${money(t.co)} → ₹${money(WB.co)}`]);
+  logHist('added','Food and lodge tape', `${WB.n} lines loaded from the workbook`, 0,
+          [`${dLabel(WB.from)} to ${dLabel(WB.to)}`,
+           `Workbook closing: ₹${money(WB.close)}`,
+           carry.length ? `${carry.length} line${carry.length===1?'':'s'} kept` : 'Nothing else kept']);
+  queueSave();
+  RANGE = { from: WB.from, to: (istToday() > WB.to ? istToday() : WB.to), preset:'custom' };
+  closeSheet();
+  render();
+  toast(`Reloaded — ${WB.n} lines, box ₹${money(cashOnHand())}`);
+}
+
+function stripHTML(x){
+  const r = x.r, cash = num(r.co), upiOut = num(r.uo), selfOut = num(r.so),
+        cin = x.cashIn, upin = num(r.up);
+  const spent = cash + upiOut + selfOut, got = cin + upin;
+  const cls = x.reset ? 'reset' : (spent ? 'hasout' : (got ? 'hasin' : ''));
+  const title = r.ds ? r.ds : (spent ? (r.cat||'Payment') : 'Collection');
+  const amt = spent ? `<span class="amt" style="color:var(--out)">−${money(spent)}</span>`
+            : got   ? `<span class="amt" style="color:var(--in)">+${money(got)}</span>`
+                    : `<span class="amt" style="color:var(--mute)">—</span>`;
+  const legs = [];
+  if(num(r.rc)) legs.push(`<span class="leg i">Rest ${money(r.rc)}</span>`);
+  if(num(r.rm)) legs.push(`<span class="leg i">Room ${money(r.rm)}</span>`);
+  if(upin)      legs.push(`<span class="leg u">UPI in ${money(upin)}</span>`);
+  if(upiOut)    legs.push(`<span class="leg u">Paid by UPI</span>`);
+  if(cash)      legs.push(`<span class="leg o">Paid in cash</span>`);
+  if(selfOut)   legs.push(`<span class="leg g">Self cash — box untouched</span>`);
+  if(r.cat && spent) legs.push(`<span class="leg c">${r.cat}</span>`);
+  if(r.hall)    legs.push(`<span class="leg g">Hall</span>`);
+  if(x.reset)   legs.push(`<span class="leg g">Fresh count</span>`);
+  const diff = x.diff===null ? '' :
+    `<span class="diffpill ${x.diff===0?'ok':'bad'}">${x.diff===0?'Counted exact':(x.diff>0?'+':'')+money(x.diff)}</span>`;
+  return `<button class="strip ${cls}" data-id="${r.id}">
+    <div class="striptop"><div class="desc">${title}</div>${amt}</div>
+    ${legs.length?`<div class="legs">${legs.join('')}</div>`:''}
+    <div class="stripfoot">
+      <span class="chain">${money(x.open)} → <b>${money(x.close)}</b></span>${diff}
+    </div></button>`;
+}
+
+function renderBookings(){
+  const today = istToday();
+  document.querySelectorAll('[data-bv]').forEach(x =>
+    x.classList.toggle('on', x.dataset.bv === BOOKVIEW));
+  const bs = DB.bookings
+    .filter(b => BOOKVIEW === 'upcoming' ? (b.d2 || b.d) >= today : bookInRange(b))
+    .sort((a,b) => BOOKVIEW === 'upcoming'
+      ? (a.d||'').localeCompare(b.d||'') : (b.d||'').localeCompare(a.d||''));
+  const val  = bs.reduce((s,b)=>s+bookTotal(b),0);
+  const paid = bs.reduce((s,b)=>s+num(b.paid),0);
+  const due  = bs.reduce((s,b)=>s+bookDue(b),0);
+  $('#bk_n').textContent    = bs.length;
+  $('#bk_val').textContent  = '₹'+money(val);
+  $('#bk_paid').textContent = '₹'+money(paid);
+  $('#bk_due').textContent  = '₹'+money(due);
+
+  $('#bookList').innerHTML = bs.length ? bs.map(b => {
+    const d = bookDue(b), past = (b.d2 || b.d) < today;
+    const when = b.d2 && b.d2 > b.d ? dLabel(b.d)+' – '+dLabel(b.d2) : dLabel(b.d);
+    const tags = [b.hall, b.ac, b.slot, b.occ].filter(Boolean).join(' · ');
+    const extra = [num(b.roy)?'royalty ₹'+money(b.roy):'', num(b.lab)?'labour ₹'+money(b.lab):'']
+                  .filter(Boolean).join(' · ');
+    return `<button class="row" data-id="${b.id}">
+      <div class="m">
+        <div class="t">${b.cust || 'Booking'}${b.ph?' · '+b.ph:''}</div>
+        <div class="s wrap">${when} · ${tags}</div>
+        ${extra ? `<div class="s wrap">Rent ₹${money(b.price)} · ${extra}</div>` : ''}
+        <div class="legs" style="margin-top:6px">
+          <span class="leg ${past?'':'g'}">${past?'Held':'Upcoming'}</span>
+          ${d ? `<span class="leg o">₹${money(d)} due</span>` : '<span class="leg i">Paid in full</span>'}
+        </div>
+      </div>
+      <div class="a">₹${money(bookTotal(b))}</div>
+    </button>`;
+  }).join('')
+  : `<div class="empty"><b>${BOOKVIEW==='upcoming'?'Nothing booked ahead':'No bookings in this period'}</b>Add one and it shows here with the balance still to collect.</div>`;
+  document.querySelectorAll('#bookList .row').forEach(x => x.onclick = () => bookingForm(x.dataset.id));
+}
+
+function renderHall(){
+  drawFilter('hallFilter');
+  renderBookings();
+  const t = totals();
+  $('#h_inc').textContent = '₹'+money(t.hallInc);
+  $('#h_exp').textContent = '₹'+money(t.hallExp);
+  const net = t.hallInc - t.hallExp;
+  const el = $('#h_net');
+  el.textContent = (net<0?'−':'') + '₹' + money(Math.abs(net));
+  el.className = 'v ' + (net<0 ? 'out' : 'in');
+
+  /* ---- hall expenses, on their own ---- */
+  $('#hx_n').textContent    = t.hallExpN;
+  $('#hx_cash').textContent = '₹'+money(t.hallExpCash);
+  $('#hx_upi').textContent  = '₹'+money(t.hallExpUpi);
+  $('#hx_bank').textContent = '₹'+money(t.hallExpBank);
+  $('#hx_tot').textContent  = '₹'+money(t.hallExp);
+
+  const cats = {};
+  DB.hall.filter(r=>inRange(r.d) && r.type!=='in')
+         .forEach(r => cats[r.cat||'Other'] = (cats[r.cat||'Other']||0) + num(r.amt));
+  $('#h_cats').innerHTML = barSplit(cats, 'var(--hall)', 'Add a hall expense and the split appears here.');
+
+  const rows = DB.hall.filter(r=>inRange(r.d)).sort((a,b)=>(b.d||'').localeCompare(a.d||''));
+  const line = r => `
+    <button class="row" data-id="${r.id}">
+      <div class="m"><div class="t">${r.ds || r.cat}</div>
+        <div class="s wrap">${dLabel(r.d)} · ${r.cat}${r.ev?' · '+r.ev:''} · ${r.mode}${r.link?' · on tape':''}</div></div>
+      <div class="a" style="color:${r.type==='in'?'var(--in)':'var(--out)'}">${r.type==='in'?'+':'−'}₹${money(r.amt)}</div>
+    </button>`;
+  const outs = rows.filter(r=>r.type!=='in'), ins = rows.filter(r=>r.type==='in');
+  $('#hallOutList').innerHTML = outs.length ? outs.map(line).join('')
+    : `<div class="empty"><b>No hall expense in this period</b>Use “Add SVS expense or payment” to record a hall cost.</div>`;
+  $('#hallInList').innerHTML = ins.length ? ins.map(line).join('')
+    : `<div class="empty"><b>Nothing received in this period</b>Booking payments show up here on their own.</div>`;
+  document.querySelectorAll('#hallOutList .row, #hallInList .row')
+    .forEach(b => b.onclick = () => hallForm(b.dataset.id));
+}
+
+function renderReport(){
+  drawFilter('repFilter');
+  const t = totals();
+  /* Food and lodge and hall are now counted apart, so they simply add up.
+     Assets already on the tape sit inside t.spent; only the rest is taken off. */
+  const combined = t.net + t.hallNet - t.assetOff;
+
+  const spent = fxRows();
+  const amtOf = r => num(r.co) + num(r.uo) + num(r.so);
+
+  const cats = {};
+  spent.forEach(r => { const k = r.cat || 'Not categorised'; cats[k] = (cats[k]||0) + amtOf(r); });
+  const catTop = Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+  const catMax = catTop.length ? catTop[0][1] : 1;
+  const untagged = DB.ledger.filter(r => !r.hall && (num(r.co)>0||num(r.uo)>0||num(r.so)>0) && !r.cat).length;
+
+  const heads = {};
+  spent.forEach(r => { const k = (r.ds||'Unlabelled').toLowerCase().trim().replace(/\s+/g,' ');
+    heads[k] = (heads[k]||0) + amtOf(r); });
+  const top = Object.entries(heads).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const topMax = top.length ? top[0][1] : 1;
+
+  const splits = (list, max, colour, cap) => list.map(([k,v])=>`
+    <div class="splitline">
+      <div class="l"><span${cap?' style="text-transform:capitalize"':''}>${k}</span><b>₹${money(v)}</b></div>
+      <div class="catbar"><i style="width:${Math.max(4,v/max*100)}%;background:${colour}"></i></div>
+    </div>`).join('');
+
+  $('#repBody').innerHTML = `
+    <div class="secttl">Food and lodge accounts — ${rangeLabel()}</div>
+    <div class="grid">
+      <div class="stat"><div class="k">Restaurant cash</div><div class="v in">₹${money(t.rc)}</div></div>
+      <div class="stat"><div class="k">Room cash</div><div class="v in">₹${money(t.rm)}</div></div>
+      <div class="stat"><div class="k">UPI collection</div><div class="v upi">₹${money(t.up)}</div></div>
+      <div class="stat"><div class="k">Total collected</div><div class="v in">₹${money(t.collected)}</div></div>
+      <div class="stat"><div class="k">Spent in cash</div><div class="v out">₹${money(t.co)}</div></div>
+      <div class="stat"><div class="k">Spent by UPI</div><div class="v out">₹${money(t.uo)}</div></div>
+      ${t.so ? `<div class="stat"><div class="k">Spent from self cash</div><div class="v out">₹${money(t.so)}</div></div>` : ''}
+      <div class="stat"><div class="k">Total spent</div><div class="v out">₹${money(t.spent)}</div></div>
+      <div class="stat wide"><div class="k">Collected − spent</div>
+        <div class="v ${t.net<0?'out':'in'}">${t.net<0?'−':''}₹${money(Math.abs(t.net))}</div></div>
+    </div>
+    <div class="formula" style="margin-top:9px">Hall money is not inside these figures. It is shown on its own below.${
+      t.so ? `<br>Self cash ₹${money(t.so)} is counted as expenditure here, though it never came out of the box.` : ''}</div>
+
+    <div class="secttl">Function hall</div>
+    <div class="grid">
+      <div class="stat"><div class="k">Hall received</div><div class="v in">₹${money(t.hallInc)}</div></div>
+      <div class="stat"><div class="k">Hall expense</div><div class="v out">₹${money(t.hallExp)}</div></div>
+      <div class="stat"><div class="k">Expense in cash</div><div class="v out">₹${money(t.hallExpCash)}</div></div>
+      <div class="stat"><div class="k">Expense by UPI</div><div class="v out">₹${money(t.hallExpUpi)}</div></div>
+      <div class="stat wide"><div class="k">Hall net for the period</div>
+        <div class="v ${t.hallNet<0?'out':'in'}">${t.hallNet<0?'−':''}₹${money(Math.abs(t.hallNet))}</div></div>
+    </div>
+
+    <div class="secttl">Assets</div>
+    <div class="grid">
+      <div class="stat"><div class="k">Items bought</div><div class="v">${t.assetN}</div></div>
+      <div class="stat"><div class="k">Spent on assets</div><div class="v out">₹${money(t.assetExp)}</div></div>
+    </div>
+
+    <div class="secttl">All together</div>
+    <div class="card">
+      <div class="k" style="font-family:var(--fn);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)">Combined net for the period</div>
+      <div style="font-family:var(--fn);font-weight:600;font-size:30px;letter-spacing:-.03em;margin-top:4px;color:${combined<0?'var(--out)':'var(--in)'}">
+        ${combined<0?'−':''}₹${money(Math.abs(combined))}</div>
+      <div class="sub" style="margin-top:6px">Cash on hand right now: <b>₹${money(cashOnHand())}</b></div>
+      <div class="formula">Food and lodge ${t.net<0?'−':''}${money(Math.abs(t.net))} ${
+        t.hallNet<0?'−':'+'} hall ${money(Math.abs(t.hallNet))}${
+        t.assetOff?' − assets outside the tape '+money(t.assetOff):''}<br>
+        Food and lodge and hall are counted apart, then added here once each.</div>
+    </div>
+
+    <div class="secttl">Food and lodge spend by category</div>
+    <div class="card">
+      ${ catTop.length ? splits(catTop, catMax, '#2C4C5E')
+        : '<div class="empty" style="padding:14px"><b>Nothing spent in this period</b>Categories appear once money goes out.</div>' }
+      ${ untagged ? `<button class="btn ghost" id="btnTag" style="margin-top:12px">Auto-tag ${untagged} older payment${untagged>1?'s':''}</button>` : '' }
+    </div>
+
+    <div class="secttl">Biggest single heads — food and lodge</div>
+    <div class="card">
+      ${ top.length ? splits(top, topMax, 'var(--out)', true)
+        : '<div class="empty" style="padding:14px"><b>Nothing spent in this period</b>Payments are grouped here.</div>' }
+    </div>
+  `;
+  const tagBtn = $('#btnTag');
+  if(tagBtn) tagBtn.onclick = () => {
+    if(!confirm('Give every uncategorised payment a suggested category? You can change any of them afterwards.')) return;
+    let n = 0;
+    DB.ledger.forEach(r => { if(!r.hall && (num(r.co)>0||num(r.uo)>0||num(r.so)>0) && !r.cat){ r.cat = guessCat(r.ds); n++; } });
+    queueSave(); render(); toast(n+' payments tagged');
+  };
+}
+
+/* ══════════ DAY REPORT (for WhatsApp) ══════════ */
+function dayReport(){
+  const d = istToday();
+  const c = chain().filter(x => x.r.d === d);
+  if(!c.length){ toast('Nothing recorded for today yet'); return; }
+  const f = c.filter(x => !x.r.hall), h = c.filter(x => x.r.hall);
+  const sum = (arr,k) => arr.reduce((s,x)=>s+num(x.r[k]),0);
+  const rc = sum(f,'rc'), rm = sum(f,'rm'), up = sum(f,'up'), co = sum(f,'co'), uo = sum(f,'uo'),
+        so = sum(f,'so');
+  const list = arr => arr.filter(x=>num(x.r.co)>0||num(x.r.uo)>0||num(x.r.so)>0)
+    .map(x=>`• ${x.r.ds||x.r.cat||'—'} — ₹${money(num(x.r.co)+num(x.r.uo)+num(x.r.so))}${
+      num(x.r.uo)?' (UPI)':num(x.r.so)?' (self cash)':''}`).join('\n');
+  const outs = list(f);
+  const hIn = sum(h,'rc')+sum(h,'rm')+sum(h,'up'), hOut = sum(h,'co')+sum(h,'uo');
+  const txt =
+`OneStop DriveIn — ${dLabel(d)}
+
+FOOD & LODGE
+Restaurant cash: ₹${money(rc)}
+Room cash: ₹${money(rm)}
+UPI: ₹${money(up)}
+Cash paid out: ₹${money(co)}
+UPI paid out: ₹${money(uo)}${so ? `\nSelf cash paid out: ₹${money(so)}` : ''}
+Total spent: ₹${money(co+uo+so)}
+${outs ? '\nPayments:\n'+outs+'\n' : ''}${
+hIn || hOut ? `\nFUNCTION HALL\nReceived: ₹${money(hIn)}\nExpense: ₹${money(hOut)}${
+  list(h) ? '\n'+list(h) : ''}\n` : ''}
+Closing cash (whole box): ₹${money(c[c.length-1].close)}`;
+  if(navigator.clipboard){ navigator.clipboard.writeText(txt).then(()=>toast('Day report copied')); }
+  else { prompt('Copy this', txt); }
+}
+
+/* ══════════ CSV ══════════ */
+function csv(rows, name){
+  const body = rows.map(r => r.map(v => `"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const url = URL.createObjectURL(new Blob([body],{type:'text/csv'}));
+  const a = document.createElement('a'); a.href = url; a.download = name; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
+$('#btnCsvLed').onclick = () => csv(
+  [['Date','Opening','Restaurant','Room','UPI','Total In','Cash Out','UPI Out','Self Cash Out','Paid by','Category','Description','Closing','Physical','Difference']]
+   .concat(chain().map(x=>[x.r.d,x.open,x.r.rc||'',x.r.rm||'',x.r.up||'',x.cashIn,x.r.co||'',x.r.uo||'',x.r.so||'',x.r.pm||'',x.r.cat||'',x.r.ds||'',x.close,x.r.ph||'',x.diff??''])),
+  'onestop-tape.csv');
+$('#btnCsvHall').onclick = () => csv(
+  [['Date','Type','Category','Details','Event','Amount','Paid by']]
+   .concat(DB.hall.map(r=>[r.d, r.type==='in'?'Received':'Expense', r.cat, r.ds||'', r.ev||'', r.amt, r.mode])),
+  'function-hall.csv');
+
+/* ══════════ WIRING ══════════ */
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
+  TAB = b.dataset.tab;
+  document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on', x===b));
+  document.querySelectorAll('.tab').forEach(s=>s.classList.toggle('on', s.id==='t-'+TAB));
+  window.scrollTo({top:0,behavior:'instant'});
+  paintTab();
+});
+$('#btnHall').onclick = () => hallForm();
+$('#btnBook').onclick = () => bookingForm();
+document.querySelectorAll('[data-bv]').forEach(x =>
+  x.onclick = () => { BOOKVIEW = x.dataset.bv; renderBookings(); });
+$('#btnCsvBook').onclick = () => csv(
+  [['Hall','AC / Non-AC','From','To','Session','Occasion','Customer','Phone','Guests',
+    'Hall rent','Royalty','Labour','Total charged','Received','Balance','Received by','Notes']]
+   .concat([...DB.bookings].sort((a,b)=>(a.d||'').localeCompare(b.d||''))
+     .map(b=>[b.hall,b.ac||'',b.d,b.d2||'',b.slot,b.occ,b.cust,b.ph||'',b.guests||'',
+              num(b.price),num(b.roy)||'',num(b.lab)||'',bookTotal(b),
+              num(b.paid),bookDue(b),b.mode||'',b.notes||''])),
+  'hall-bookings.csv');
+$('#btnCsvFx').onclick = () => csv(
+  [['Date','Category','Details','Cash out','UPI out','Self cash out','Total','Paid by','Off the box']]
+   .concat(fxRows().slice().reverse()
+     .map(r=>[r.d, r.cat||'', r.ds||'', num(r.co)||'', num(r.uo)||'', num(r.so)||'',
+              num(r.co)+num(r.uo)+num(r.so), r.pm||payLabel(r), num(r.co)?'Yes':'No'])),
+  'food-and-lodge-expenses.csv');
+$('#btnCsvHallExp').onclick = () => csv(
+  [['Date','Category','Details','Event','Amount','Paid by','On tape']]
+   .concat(DB.hall.filter(r=>r.type!=='in').sort((a,b)=>(a.d||'').localeCompare(b.d||''))
+     .map(r=>[r.d, r.cat||'', r.ds||'', r.ev||'', num(r.amt), r.mode||'', r.link?'Yes':'No'])),
+  'hall-expenses.csv');
+$('#btnWbBackup').onclick = () => wbBackup();
+$('#btnWbRebuild').onclick = () => wbRebuildSheet();
+$('#btnExp').onclick = () => expenseForm();
+$('#btnCol').onclick = () => collectionForm();
+$('#btnDayCopy').onclick = dayReport;
+$('#btnDayBook').onclick = () => {
+  DAYBOOK = !DAYBOOK;
+  localStorage.setItem('os_daybook', DAYBOOK ? '1' : '0');
+  renderDayBook();
+};
+$('#btnAsset').onclick = () => assetForm();
+$('#btnCsvAsset').onclick = () => csv(
+  [['Date','Category','Item','Quantity','Amount','Paid by','Where it is','Vendor','Notes','On tape']]
+   .concat([...(DB.assets||[])].sort((a,b)=>(a.d||'').localeCompare(b.d||''))
+     .map(r=>[r.d,r.cat,r.ds||'',r.qty||'',num(r.amt),r.mode||'',r.loc||'',r.vendor||'',r.notes||'',r.link?'Yes':'No'])),
+  'onestop-assets.csv');
+document.querySelectorAll('#histChips button').forEach(b =>
+  b.onclick = () => { HFILTER = b.dataset.hf; renderHistory(); });
+$('#btnHistCsv').onclick = () => csv(
+  [['When','Action','Kind','Details','Amount','What changed']]
+   .concat([...(DB.history||[])].sort((a,b)=>(b.ts||0)-(a.ts||0)).map(h=>[
+     new Date(h.ts).toLocaleString('en-GB',{timeZone:'Asia/Kolkata'}),
+     h.action, h.kind, h.label, h.amt||'', (h.ch||[]).join(' | ')])),
+  'onestop-history.csv');
+$('#btnHistClear').onclick = () => {
+  if(!(DB.history||[]).length){ toast('History is already empty'); return; }
+  if(!confirm(`Clear all ${DB.history.length} history records?\n\nThe entries themselves are not touched — only this log of changes. It cannot be undone.`)) return;
+  DB.history = []; queueSave(); renderHistory(); toast('History cleared');
+};
+
+
+(async function init(){
+  await load();
+  RANGE = presetRange('month');
+  render();
+})();
+</script>
+</body>
+</html>
