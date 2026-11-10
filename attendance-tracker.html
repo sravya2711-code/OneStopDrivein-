@@ -49,6 +49,9 @@
     position:sticky; top:0; z-index:30;
     box-shadow:0 4px 14px rgba(15,54,48,0.18);
   }
+  /* while scrolling, the header shrinks to just the period switcher so more of the card shows */
+  header.compact{padding-top:8px; padding-bottom:10px;}
+  header.compact .brand, header.compact h1, header.compact .sub, header.compact .sync-status, header.compact #appSettingsBtn{display:none;}
   header .brand{font-size:12px; letter-spacing:.14em; text-transform:uppercase; opacity:.72; font-weight:600;}
   header h1{font-size:20px; margin:2px 0 0; font-weight:700;}
   header .sub{font-size:13px; opacity:.78; margin-top:2px;}
@@ -262,6 +265,9 @@
     background:#EEF6EF; color:var(--present); border-radius:10px; font-weight:700; font-size:13px; font-family:inherit;}
   .breakdown .row.muted-row{color:var(--ink-soft); font-size:12px;}
   .gas-lbl{cursor:pointer; font-weight:600;}
+  .breakdown .row.food-check{cursor:pointer;}
+  .breakdown .row.food-check > span:last-child{white-space:nowrap;}
+  .breakdown .row.food-check input{width:auto; margin:0 6px 0 0; vertical-align:-2px; transform:scale(1.15);}
   .gaswrap{display:inline-flex; align-items:center; gap:2px; color:var(--absent); font-weight:700;}
   .gaswrap input{width:70px; padding:3px 6px; border:1.5px solid var(--line); border-radius:6px;
     font-size:13px; text-align:right; font-family:inherit; color:var(--ink);}
@@ -1339,12 +1345,27 @@ function salaryNet(w, parts){
   const extras = extrasFor(w, parts);
   const extraTotal = extras.reduce((s,x)=> s + (Number(x.amount)||0), 0);
   // Extras she has marked as handed over on their own (separately from the salary).
-  const extraPaidSep = extras.filter(x=> x.paid && x.paid.date).reduce((s,x)=> s + (Number(x.amount)||0), 0);
+  const payRec = getPayment(w, parts);
+  const extraPaidSep = extras.filter(x=> extraPaidSeparately(x, payRec)).reduce((s,x)=> s + (Number(x.amount)||0), 0);
   return {e, advs, recovered, givenNow, advTotal: recovered, owedBefore, owedAfter, tip,
           canteenList, canteenTotal, ct, food, extras, extraTotal, extraPaidSep,
           net: e.earned + tip - recovered - canteenTotal + food.pay + extraTotal};
 }
 // ---- extra pay (manual, with a reason) — stored per pay period like tips ----
+// An extra counts as "paid separately" only when it was NOT part of the salary payment:
+//  • salary not marked paid yet and the extra is marked paid, or
+//  • the extra was added AFTER the salary was marked paid, and then marked paid, or
+//  • it was already paid separately when the salary was marked (so the salary excluded it).
+// An extra that existed when the salary was marked paid is inside that salary amount.
+function extraIncludedInSalary(x, payRec){
+  if(!payRec) return false;
+  if((payRec.sepIds||[]).includes(x.id)) return false;
+  return (x.at||0) <= (payRec.at||0);
+}
+function extraPaidSeparately(x, payRec){
+  if(!(x.paid && x.paid.date)) return false;
+  return !extraIncludedInSalary(x, payRec);
+}
 function extrasFor(w, parts){
   return ((state.extras||{})[paymentKey(w, parts)] || []);
 }
@@ -1457,12 +1478,9 @@ function foodAllowanceOf(w){
   return (w.foodAllow===undefined || w.foodAllow===null || w.foodAllow==='') ? FOOD_ALLOWANCE_DEFAULT : (Number(w.foodAllow)||0);
 }
 function foodKey(w, parts){ return w.id+'|'+parts.y+'-'+parts.m; }
-// Food expenses were brought into the app from November 2026 — earlier months were
-// already settled outside it, so they are never added to those salary cards.
-const FOOD_START = {y:2026, m:11};
+// Food expenses are only added when she ticks the box for that month.
 function foodApplies(w, parts){
   if(foodAllowanceOf(w)<=0) return false;
-  if(parts.y*100+parts.m < FOOD_START.y*100+FOOD_START.m) return false;
   if(w.payFreq==='monthly') return true;
   const b = periodBounds(parts);
   if(w.startDate && w.startDate > monthBounds(parts).end) return false;
@@ -1473,17 +1491,18 @@ function foodFor(w, parts){
   const allow = foodAllowanceOf(w);
   const rec = (state.food||{})[foodKey(w, parts)] || {};
   const applies = foodApplies(w, parts);
+  const given = !!rec.given;                      // ticked = add ₹1500 to this salary
   const gas = !!rec.gas;
   const gasAmt = gas ? (Number(rec.gasAmt)||0) : 0;
   const gasDeduct = Math.min(gasAmt, allow);
-  return {applies, allow, gas, gasAmt, gasDeduct, over: gasAmt>allow,
-          pay: applies ? allow - gasDeduct : 0};
+  return {applies, given, allow, gas, gasAmt, gasDeduct, over: gasAmt>allow,
+          pay: (applies && given) ? allow - gasDeduct : 0};
 }
 function setFood(w, parts, patch){
   if(!state.food) state.food = {};
   const k = foodKey(w, parts);
   const rec = Object.assign({}, state.food[k]||{}, patch);
-  if(!rec.gas && !rec.gasAmt) delete state.food[k]; else state.food[k] = rec;
+  if(!rec.given && !rec.gas && !rec.gasAmt) delete state.food[k]; else state.food[k] = rec;
 }
 // Tips are stored per worker per pay period, on the same key the payment record uses,
 // so a monthly worker has one tip for the month and a biweekly worker one per half.
@@ -1794,7 +1813,16 @@ function startSync(){
 }
 
 // ---- rendering ----
+let _lastRenderedTab = null;
 function render(){
+  // Re-drawing a tab (after ticking a box, typing an amount…) must not throw her back
+  // to the top of the page — keep the scroll position when it's the same tab.
+  const keepY = (_lastRenderedTab===currentTab) ? window.scrollY : null;
+  _lastRenderedTab = currentTab;
+  renderInner();
+  if(keepY!==null) window.scrollTo(0, keepY);
+}
+function renderInner(){
   renderHeader();
   if(currentTab==='attendance') renderAttendance();
   else if(currentTab==='salary') renderSalary();
@@ -2054,12 +2082,11 @@ function renderSalary(){
       let foodRows = '';
       if(food.applies){
         foodRows =
-          `<div class="row food-row"><span>🍚 ఆహార ఖర్చులు · Food expenses<span class="en2">Fixed for the month — paid on top of salary</span></span><span>+${fmtRupee(food.allow)}</span></div>
-           <div class="row gas-row"><span><label class="gas-lbl"><input type="checkbox" class="gasTaken" data-w="${w.id}" ${food.gas?'checked':''} ${paid?'disabled':''}> 🔥 గ్యాస్ సిలిండర్ తీసుకున్నారు</label><span class="en2">Gas cylinder taken — comes off food expenses, not salary</span></span>
-             <span class="gaswrap" style="${food.gas?'':'visibility:hidden'}">−<input type="number" inputmode="numeric" class="gasAmt" data-w="${w.id}" value="${food.gasAmt||''}" placeholder="0" ${paid?'disabled':''}></span></div>
-           ${food.over?`<div class="row defer-block"><span>⚠️ గ్యాస్ ${fmtRupee(food.gasAmt)} — ${fmtRupee(food.allow)} వరకే తీసివేశాం<span class="en2">Gas is more than food expenses — only ${fmtRupee(food.allow)} taken off, salary untouched</span></span><span></span></div>`:''}
-           <div class="row food-row"><span>ఆహార ఖర్చులు ఇవ్వవలసినది<span class="en2">Food expenses payable${food.gasDeduct?' (after gas)':''}</span></span><span>+${fmtRupee(food.pay)}</span></div>`;
-      } else if(!isMonthly && foodAllowanceOf(w)>0 && parts.half===1 && parts.y*100+parts.m >= FOOD_START.y*100+FOOD_START.m){
+          `<label class="row food-row food-check"><span><input type="checkbox" class="foodGiven" data-w="${w.id}" ${food.given?'checked':''}> 🍚 ఆహార ఖర్చులు · Food expenses ${fmtRupee(food.allow)}<span class="en2">${food.given?'Added to this salary (once a month)':'Tick to add to this salary'}</span></span><span>${food.given?'+'+fmtRupee(food.allow):'—'}</span></label>` +
+          (food.given ? `<div class="row gas-row"><span><label class="gas-lbl"><input type="checkbox" class="gasTaken" data-w="${w.id}" ${food.gas?'checked':''}> 🔥 గ్యాస్ సిలిండర్ తీసుకున్నారు</label><span class="en2">Gas cylinder — comes off food expenses, not salary</span></span>
+             <span class="gaswrap" style="${food.gas?'':'visibility:hidden'}">−<input type="number" inputmode="numeric" class="gasAmt" data-w="${w.id}" value="${food.gasAmt||''}" placeholder="0"></span></div>
+           ${food.over?`<div class="row defer-block"><span>⚠️ గ్యాస్ ${fmtRupee(food.gasAmt)} — ${fmtRupee(food.allow)} వరకే తీసివేశాం<span class="en2">Gas is more than food expenses — only ${fmtRupee(food.allow)} taken off, salary untouched</span></span><span></span></div>`:''}` : '');
+      } else if(!isMonthly && foodAllowanceOf(w)>0 && parts.half===1){
         foodRows = `<div class="row muted-row"><span>🍚 ఆహార ఖర్చులు ${fmtRupee(foodAllowanceOf(w))} — 16 నుండి నెల చివరి జీతంతో<span class="en2">Food expenses are paid with the 2nd-half salary</span></span><span></span></div>`;
       }
       const advRows = givenRow +
@@ -2067,7 +2094,9 @@ function renderSalary(){
         canteenRow + foodRows +
         extras.map(x=> `<div class="row extra-row"><span>➕ అదనపు జీతం · Extra pay<span class="en2">${escapeText(x.reason)}${x.date?' · '+fmtShort(x.date):''}</span></span>
            <span><button class="extra-edit" data-w="${w.id}" data-x="${x.id}" title="మార్చండి">+${fmtRupee(x.amount)} ✏️</button> <button class="extra-del" data-w="${w.id}" data-x="${x.id}" title="తొలగించు">\u2715</button></span></div>
-           <div class="row extra-paid-row">${(x.paid&&x.paid.date)
+           <div class="row extra-paid-row">${extraIncludedInSalary(x, paid)
+             ? `<span class="xp-done">✓ జీతంతో కలిపి ఇచ్చారు<span class="en2">Included in the salary paid on ${fmtShort(paid.date)}</span></span><span></span>`
+             : (x.paid&&x.paid.date)
              ? `<span class="xp-done">✓ అదనపు మొత్తం ఇచ్చారు · ${fmtShort(x.paid.date)}<span class="en2">Extra paid separately</span></span><button class="xp-btn undo-x" data-w="${w.id}" data-x="${x.id}">తీసివేయి (undo)</button>`
              : `<span class="xp-todo">${paid?'ఈ అదనపు మొత్తం ఇంకా ఇవ్వలేదు':'జీతంతో కలిపి ఇస్తారు'}<span class="en2">${paid?'Not given yet':'Will be paid with salary — or mark paid now'}</span></span><button class="xp-btn" data-w="${w.id}" data-x="${x.id}">✓ ఇచ్చారు (Mark extra paid)</button>`}</div>`).join('') +
         `<div class="row tip-row"><span>\ud83d\udcb0 టిప్ (Tip \u2014 జీతానికి కలుస్తుంది)</span>
@@ -2195,6 +2224,14 @@ function renderSalary(){
     cb.addEventListener('change', ()=>{
       const w = state.workers.find(x=>x.id===cb.dataset.w);
       setCanteenDefer(w, parts, cb.checked);
+      saveState();
+      render();
+    });
+  });
+  main.querySelectorAll('.foodGiven').forEach(cb=>{
+    cb.addEventListener('change', ()=>{
+      const w = state.workers.find(x=>x.id===cb.dataset.w);
+      setFood(w, parts, cb.checked ? {given:true} : {given:false, gas:false, gasAmt:0});
       saveState();
       render();
     });
@@ -2808,8 +2845,9 @@ function paymentHistory(){
     const parts = {y:Number(bits[0]), m:Number(bits[1]), half: bits[2]==='M' ? 1 : Number(bits[2])};
     const w = state.workers.find(x=>x.id===wid);
     const scopeLabel = bits[2]==='M' ? periodBottomLabel(parts)+' · పూర్తి నెల' : periodTopLabel(parts)+' '+periodBottomLabel(parts);
+    const payRec = (state.payments||{})[k] || null;
     (state.extras[k]||[]).forEach(x=>{
-      if(!x.paid || !x.paid.date) return;
+      if(!extraPaidSeparately(x, payRec)) return;
       rows.push({
         group:'salary', key:'ext|'+k+'|'+x.id, date:x.paid.date, at:x.paid.at||0, amount:Number(x.amount)||0,
         note:x.reason||'', dir:'out',
@@ -3695,11 +3733,13 @@ function openPaySalaryModal(workerId, netSuggested){
   bg.querySelector('#pyCancel').addEventListener('click', ()=> bg.remove());
   bg.addEventListener('click', (e)=>{ if(e.target===bg) bg.remove(); });
   bg.querySelector('#pySave').addEventListener('click', ()=>{
+    const sepIds = extrasFor(w, parts).filter(x=> x.paid && x.paid.date).map(x=> x.id);
     setPayment(w, parts, {
       date: bg.querySelector('#pyDate').value || todayStr(),
       amount: Number(bg.querySelector('#pyAmt').value)||0,
       note: bg.querySelector('#pyNote').value.trim(),
-      at: Date.now()
+      at: Date.now(),
+      sepIds
     });
     saveState();
     bg.remove();
@@ -3939,6 +3979,33 @@ document.getElementById('appSettingsModal').addEventListener('click', (e)=>{
       '<div class="empty">Something went wrong loading the app.<br>Please close and reopen it.</div>';
   }
   startSync();
+})();
+
+// ---- compact header while scrolling ------------------------------------------
+// The tall green header used to eat a third of the phone screen. Once she scrolls
+// down it shrinks to just the period switcher; the scroll position is corrected by
+// the height change so the page never jumps under her finger.
+(function(){
+  const hdr = document.querySelector('header');
+  if(!hdr) return;
+  let busy = false;
+  function onScroll(){
+    if(busy || document.documentElement.classList.contains('modal-open')) return;
+    const y = window.scrollY;
+    const compact = hdr.classList.contains('compact');
+    if(!compact && y > 220){
+      busy = true;
+      const h0 = hdr.offsetHeight; hdr.classList.add('compact');
+      window.scrollTo(0, Math.max(0, y - (h0 - hdr.offsetHeight)));
+      requestAnimationFrame(()=>{ busy = false; });
+    } else if(compact && y < 10){
+      busy = true;
+      const h0 = hdr.offsetHeight; hdr.classList.remove('compact');
+      window.scrollTo(0, y + (hdr.offsetHeight - h0));
+      requestAnimationFrame(()=>{ busy = false; });
+    }
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
 })();
 </script>
 </body>
