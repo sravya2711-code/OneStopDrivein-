@@ -707,8 +707,8 @@ const TE_DOW = ['ఆది','సోమ','మంగళ','బుధ','గురు
 const DEFAULT_WORKERS = [
   {id:'veerababu',   name:'Veerababu',   te:'వీరబాబు',    role:'Chef',                       dayRate:1200, payFreq:'biweekly'},
   {id:'raju',        name:'Raju',        te:'రాజు',       role:'Assistant Chef',             dayRate:900,  payFreq:'biweekly'},
-  {id:'triveni',     name:'Triveni',     te:'త్రివేణి',    role:'Manager',                    monthly:12000, dayRate:400, payFreq:'monthly', noAbsentDeduct:true},
-  {id:'laxman',      name:'Laxman',      te:'లక్ష్మణ్',    role:'Convention Hall Incharge',   monthly:15000, dayRate:500, payFreq:'monthly', noAbsentDeduct:true},
+  {id:'triveni',     name:'Triveni',     te:'త్రివేణి',    role:'Manager',                    monthly:12000, dayRate:400, payFreq:'monthly', noAbsentDeduct:true, foodAllow:1000},
+  {id:'laxman',      name:'Laxman',      te:'లక్ష్మణ్',    role:'Convention Hall Incharge',   monthly:15000, dayRate:500, payFreq:'monthly', noAbsentDeduct:true, foodAllow:1000},
   {id:'venkatesh',   name:'Venkatesh',   te:'వెంకటేష్',   role:'Cleaner & Lodge Supervisor', dayRate:600,  payFreq:'biweekly'},
   {id:'krishnavedi', name:'Krishnaveni', te:'కృష్ణవేణి',  role:'Cleaner',                    dayRate:400,  payFreq:'biweekly'},
   {id:'manasa',      name:'Maanasa',     te:'మానసా',     role:'Cleaner',                    monthly:12000, dayRate:400, payFreq:'monthly'},
@@ -1729,6 +1729,11 @@ function normalizeState(){
       if((w.id==='venkatesh' || w.id==='krishnavedi') && foodAllowanceOf(w)<=0) delete w.foodAllow;
     });
     state.foodFixV1 = true;
+  }
+  // Triveni & Laxman: food expenses ₹1000 each (13 Nov 2026)
+  if(!state.foodFixV2){
+    state.workers.forEach(w=>{ if(w.id==='triveni' || w.id==='laxman') w.foodAllow = 1000; });
+    state.foodFixV2 = true;
   }
   if(!state.extras || typeof state.extras !== 'object') state.extras = {};
   if(!state.laxman) state.laxman = {periods:{}, months:{}};
