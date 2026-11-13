@@ -3186,8 +3186,15 @@ function pdfDoc(title){
   return doc;
 }
 ACT.roPdf = async () => {
-  const rows = buildReorderRows().filter(r => (r.status === 'crit' || r.status === 'soon') && r.suggest != null);
-  if (!rows.length){ toast('Nothing needs ordering right now'); return; }
+  /* Only items currently ON the shopping list go in the sheet, using the list's quantity */
+  const rows = [];
+  for (const [k, li] of Object.entries(state.shoppingList)){
+    if (!li || !li.invId || !state.inventoryItems[li.invId]) continue;
+    const base = reorderRowFor(li.invId); if (!base) continue;
+    const q = li.qty != null && li.qty !== '' ? Number(li.qty) : base.suggest;
+    rows.push(Object.assign({}, base, { suggest: q, orderCost: (base.rate != null && q != null) ? base.rate * q : null }));
+  }
+  if (!rows.length){ toast('Your shopping list has no stock items — tap “Add to list” first'); return; }
   const doc = pdfDoc('Purchase sheet'); if (!doc) return;
   const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight(), M = 40; let y = 104, grand = 0;
   const ensure = h => { if (y + h > H - 56){ doc.addPage(); y = 52; } };
@@ -3200,7 +3207,7 @@ ACT.roPdf = async () => {
       ensure(30); doc.setTextColor(20,25,26); doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.text(pdfSafe(r.it.name).slice(0, 42) || 'Item', M, y);
       doc.setFont('helvetica','normal'); doc.setFontSize(10);
       doc.text(r.qty == null ? '-' : fmtNum(r.qty) + ' ' + pdfSafe(r.unit), W-M-210, y, {align:'right'}); doc.text(r.cover == null ? '-' : (r.cover < 10 ? r.cover.toFixed(1) : String(Math.round(r.cover))) + ' d', W-M-140, y, {align:'right'});
-      doc.setFont('helvetica','bold'); doc.text(fmtNum(r.suggest) + ' ' + pdfSafe(r.unit), W-M-70, y, {align:'right'}); doc.setFont('helvetica','normal');
+      doc.setFont('helvetica','bold'); doc.text((r.suggest == null ? "-" : fmtNum(r.suggest) + " " + pdfSafe(r.unit)), W-M-70, y, {align:'right'}); doc.setFont('helvetica','normal');
       doc.text(r.orderCost != null ? 'Rs ' + Math.round(r.orderCost).toLocaleString('en-IN') : '-', W-M, y, {align:'right'}); if (r.orderCost) grand += r.orderCost;
       y += 13; doc.setFontSize(8.5); doc.setTextColor(110,120,115); doc.text(pdfSafe(r.reason).slice(0, 90), M + 8, y); y += 15;
     }
