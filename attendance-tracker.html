@@ -46,7 +46,7 @@
     background:var(--teal-800);
     color:#fff;
     padding:18px 18px 22px;
-    position:sticky; top:0; z-index:30;
+    position:fixed; top:0; left:0; right:0; z-index:30;
     box-shadow:0 4px 14px rgba(15,54,48,0.18);
   }
   /* while scrolling, the header shrinks to just the period switcher so more of the card shows */
@@ -602,9 +602,7 @@
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 button,a,input,select,textarea,label,summary,[role=button]{touch-action:manipulation}
 body{overscroll-behavior-y:contain}
-.card{content-visibility:auto;contain-intrinsic-size:auto 180px}
-.modal .card,.modal-bg .card{content-visibility:visible}
-.hist-item{content-visibility:auto;contain-intrinsic-size:auto 64px}
+/* content-visibility removed: it made the page height jump while scrolling on phones */
 </style>
 
 <!-- ═══ OneStop: database sign-in + Home link. Loads before the app so every
@@ -633,6 +631,7 @@ body{overscroll-behavior-y:contain}
   <div class="daydots" id="dayDots"></div>
 </header>
 
+<div id="headerSpacer" aria-hidden="true"></div>
 <main id="mainArea">
   <div class="loading">లోడ్ అవుతోంది... loading</div>
 </main>
@@ -686,7 +685,9 @@ body{overscroll-behavior-y:contain}
     document.documentElement.classList.toggle('modal-open', open);
   }
   function scan(){ document.querySelectorAll('.modal').forEach(fix); lock(); }
-  new MutationObserver(scan).observe(document.body, {childList:true, subtree:true, attributes:true, attributeFilter:['style','class']});
+  new MutationObserver(scan).observe(document.body, {childList:true});
+  const asm = document.getElementById('appSettingsModal');
+  if(asm) new MutationObserver(lock).observe(asm, {attributes:true, attributeFilter:['style']});
   scan();
 })();
 const STORAGE_KEY = 'onestop-hr-v1';
@@ -1479,23 +1480,30 @@ function foodAllowanceOf(w){
 }
 function foodKey(w, parts){ return w.id+'|'+parts.y+'-'+parts.m; }
 // Food expenses are only added when she ticks the box for that month.
+// Biweekly staff (Venkatesh, Krishnaveni…) get the same tick box on BOTH half-month
+// cards; ticking it on either one adds ₹1500 once for that month, and the other
+// half then shows where it was added.
 function foodApplies(w, parts){
   if(foodAllowanceOf(w)<=0) return false;
   if(w.payFreq==='monthly') return true;
   const b = periodBounds(parts);
-  if(w.startDate && w.startDate > monthBounds(parts).end) return false;
-  if(parts.half===2) return !(w.endDate && w.endDate < b.start);   // left in the 1st half → paid there
-  return !!(w.endDate && w.endDate <= b.end);                       // 1st half only if this is his final card
+  if(w.startDate && w.startDate > b.end) return false;      // not joined yet in this half
+  if(w.endDate && w.endDate < b.start) return false;         // already left
+  return true;
 }
 function foodFor(w, parts){
   const allow = foodAllowanceOf(w);
   const rec = (state.food||{})[foodKey(w, parts)] || {};
   const applies = foodApplies(w, parts);
-  const given = !!rec.given;                      // ticked = add ₹1500 to this salary
+  // which half-month card it was added on (old records = 2nd half, as before)
+  const recHalf = rec.given ? (rec.half || 2) : null;
+  const otherHalf = w.payFreq!=='monthly' && rec.given && recHalf!==parts.half;
+  const given = !!rec.given && !otherHalf;        // ticked on THIS card = add ₹1500 here
   const gas = !!rec.gas;
   const gasAmt = gas ? (Number(rec.gasAmt)||0) : 0;
   const gasDeduct = Math.min(gasAmt, allow);
   return {applies, given, allow, gas, gasAmt, gasDeduct, over: gasAmt>allow,
+          otherHalf, recHalf,
           pay: (applies && given) ? allow - gasDeduct : 0};
 }
 function setFood(w, parts, patch){
@@ -1702,6 +1710,13 @@ function normalizeState(){
   if(!state.tips) state.tips = {};
   if(!state.canteenDefer || typeof state.canteenDefer !== 'object') state.canteenDefer = {};
   if(!state.food || typeof state.food !== 'object') state.food = {};
+  // Venkatesh & Krishnaveni get ₹1500 food expenses like everyone else (13 Nov 2026)
+  if(!state.foodFixV1){
+    state.workers.forEach(w=>{
+      if((w.id==='venkatesh' || w.id==='krishnavedi') && foodAllowanceOf(w)<=0) delete w.foodAllow;
+    });
+    state.foodFixV1 = true;
+  }
   if(!state.extras || typeof state.extras !== 'object') state.extras = {};
   if(!state.laxman) state.laxman = {periods:{}, months:{}};
   if(!state.laxman.periods) state.laxman.periods = {};
@@ -2080,7 +2095,9 @@ function renderSalary(){
       }
       // Fixed monthly food expenses, with an optional gas cylinder taken off it.
       let foodRows = '';
-      if(food.applies){
+      if(food.applies && food.otherHalf){
+        foodRows = `<div class="row muted-row"><span>🍚 ఆహార ఖర్చులు ${fmtRupee(food.allow)} — ${food.recHalf===1?'1–15':'16–నెల చివరి'} జీతంతో ఇచ్చాం<span class="en2">Food expenses already added with the ${food.recHalf===1?'1st-half':'2nd-half'} salary this month</span></span><span></span></div>`;
+      } else if(food.applies){
         foodRows =
           `<label class="row food-row food-check"><span><input type="checkbox" class="foodGiven" data-w="${w.id}" ${food.given?'checked':''}> 🍚 ఆహార ఖర్చులు · Food expenses ${fmtRupee(food.allow)}<span class="en2">${food.given?'Added to this salary (once a month)':'Tick to add to this salary'}</span></span><span>${food.given?'+'+fmtRupee(food.allow):'—'}</span></label>` +
           (food.given ? `<div class="row gas-row"><span><label class="gas-lbl"><input type="checkbox" class="gasTaken" data-w="${w.id}" ${food.gas?'checked':''}> 🔥 గ్యాస్ సిలిండర్ తీసుకున్నారు</label><span class="en2">Gas cylinder — comes off food expenses, not salary</span></span>
@@ -2231,7 +2248,7 @@ function renderSalary(){
   main.querySelectorAll('.foodGiven').forEach(cb=>{
     cb.addEventListener('change', ()=>{
       const w = state.workers.find(x=>x.id===cb.dataset.w);
-      setFood(w, parts, cb.checked ? {given:true} : {given:false, gas:false, gasAmt:0});
+      setFood(w, parts, cb.checked ? {given:true, half:parts.half} : {given:false, half:null, gas:false, gasAmt:0});
       saveState();
       render();
     });
@@ -3986,24 +4003,29 @@ document.getElementById('appSettingsModal').addEventListener('click', (e)=>{
 // down it shrinks to just the period switcher; the scroll position is corrected by
 // the height change so the page never jumps under her finger.
 (function(){
+  // The header is position:fixed with a spacer under it holding its FULL height, so
+  // shrinking/growing it never changes the page layout and we never call scrollTo()
+  // mid-swipe (that is what was killing finger scrolling on the phone).
   const hdr = document.querySelector('header');
-  if(!hdr) return;
-  let busy = false;
+  const spacer = document.getElementById('headerSpacer');
+  if(!hdr || !spacer) return;
+  function sizeSpacer(){
+    if(!hdr.classList.contains('compact')) spacer.style.height = hdr.offsetHeight + 'px';
+  }
+  sizeSpacer();
+  if(window.ResizeObserver) new ResizeObserver(sizeSpacer).observe(hdr);
+  window.addEventListener('resize', sizeSpacer);
+  let ticking = false;
   function onScroll(){
-    if(busy || document.documentElement.classList.contains('modal-open')) return;
-    const y = window.scrollY;
-    const compact = hdr.classList.contains('compact');
-    if(!compact && y > 220){
-      busy = true;
-      const h0 = hdr.offsetHeight; hdr.classList.add('compact');
-      window.scrollTo(0, Math.max(0, y - (h0 - hdr.offsetHeight)));
-      requestAnimationFrame(()=>{ busy = false; });
-    } else if(compact && y < 10){
-      busy = true;
-      const h0 = hdr.offsetHeight; hdr.classList.remove('compact');
-      window.scrollTo(0, y + (hdr.offsetHeight - h0));
-      requestAnimationFrame(()=>{ busy = false; });
-    }
+    if(ticking) return; ticking = true;
+    requestAnimationFrame(()=>{
+      ticking = false;
+      if(document.documentElement.classList.contains('modal-open')) return;
+      const y = window.scrollY;
+      const compact = hdr.classList.contains('compact');
+      if(!compact && y > 140) hdr.classList.add('compact');
+      else if(compact && y < 20){ hdr.classList.remove('compact'); sizeSpacer(); }
+    });
   }
   window.addEventListener('scroll', onScroll, {passive:true});
 })();
