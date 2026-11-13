@@ -265,6 +265,14 @@
     background:#EEF6EF; color:var(--present); border-radius:10px; font-weight:700; font-size:13px; font-family:inherit;}
   .breakdown .row.muted-row{color:var(--ink-soft); font-size:12px;}
   .gas-lbl{cursor:pointer; font-weight:600;}
+  .food-box{margin-top:10px; border:1.5px solid #CFE3D2; background:#EEF6EF; border-radius:10px; padding:4px 12px;}
+  .food-box.muted{background:#F6F4EE; border-color:var(--line); color:var(--ink-soft); font-size:12.5px;}
+  .food-box .fb-row{display:flex; justify-content:space-between; align-items:center; gap:10px; padding:7px 0; font-size:13px;}
+  .food-box .fb-row + .fb-row{border-top:1px dashed #CFE3D2;}
+  .food-box .fb-row .en2{display:block; font-size:11px; opacity:.75; font-weight:400;}
+  .food-box .fb-check{cursor:pointer; color:var(--present); font-weight:600;}
+  .food-box .fb-check input{width:auto; margin:0 6px 0 0; vertical-align:-2px; transform:scale(1.15);}
+  .food-box .fb-total{font-weight:700; color:var(--present); font-size:14px;}
   .breakdown .row.food-check{cursor:pointer;}
   .breakdown .row.food-check > span:last-child{white-space:nowrap;}
   .breakdown .row.food-check input{width:auto; margin:0 6px 0 0; vertical-align:-2px; transform:scale(1.15);}
@@ -1491,20 +1499,25 @@ function foodApplies(w, parts){
   if(w.endDate && w.endDate < b.start) return false;         // already left
   return true;
 }
+// Food expenses (₹1500) are given to the worker SEPARATELY — they are only ticked
+// here and shown in their own box; they never change the salary total.
+// A gas cylinder taken IS deducted from salary, shown as its own line.
 function foodFor(w, parts){
   const allow = foodAllowanceOf(w);
   const rec = (state.food||{})[foodKey(w, parts)] || {};
   const applies = foodApplies(w, parts);
-  // which half-month card it was added on (old records = 2nd half, as before)
+  const biweekly = w.payFreq!=='monthly';
+  // which half-month card it was ticked on (old records = 2nd half, as before)
   const recHalf = rec.given ? (rec.half || 2) : null;
-  const otherHalf = w.payFreq!=='monthly' && rec.given && recHalf!==parts.half;
-  const given = !!rec.given && !otherHalf;        // ticked on THIS card = add ₹1500 here
-  const gas = !!rec.gas;
+  const otherHalf = biweekly && rec.given && recHalf!==parts.half;
+  const given = !!rec.given && !otherHalf;
+  const gasHalf = rec.gas ? (rec.gasHalf || rec.half || 2) : null;
+  const gasOtherHalf = biweekly && !!rec.gas && gasHalf!==parts.half;
+  const gas = !!rec.gas && !gasOtherHalf;
   const gasAmt = gas ? (Number(rec.gasAmt)||0) : 0;
-  const gasDeduct = Math.min(gasAmt, allow);
-  return {applies, given, allow, gas, gasAmt, gasDeduct, over: gasAmt>allow,
-          otherHalf, recHalf,
-          pay: (applies && given) ? allow - gasDeduct : 0};
+  return {applies, given, allow, otherHalf, recHalf, gas, gasAmt, gasOtherHalf, gasHalf,
+          give: (applies && given) ? allow : 0,          // handed over separately
+          pay: (applies && gas) ? -gasAmt : 0};           // effect on salary: gas only
 }
 function setFood(w, parts, patch){
   if(!state.food) state.food = {};
@@ -2093,18 +2106,20 @@ function renderSalary(){
               ? `<div class="row defer-block"><span>⚠️ 1 నెల దాటింది — ఈ పీరియడ్‌లో తప్పక తీసివేయాలి<span class="en2">Carried for a month already — must be cleared now</span></span><span></span></div>`
               : (ct.finalCard ? `<div class="row defer-block"><span>🔒 చివరి జీతం — క్యాంటీన్ బాకీ ఇప్పుడే తీసివేయాలి<span class="en2">Final salary — canteen must be cleared</span></span><span></span></div>` : '')));
       }
-      // Fixed monthly food expenses, with an optional gas cylinder taken off it.
-      let foodRows = '';
+      // Gas cylinder: deducted from salary (its own line). Food expenses: separate box
+      // below the salary total — ticked only, never added to the salary.
+      let foodRows = '', foodBox = '';
+      if(food.applies && !food.gasOtherHalf){
+        foodRows = `<div class="row gas-row${food.gas?' warn':''}"><span><label class="gas-lbl"><input type="checkbox" class="gasTaken" data-w="${w.id}" ${food.gas?'checked':''}> 🔥 గ్యాస్ సిలిండర్ తీసుకున్నారు</label><span class="en2">Gas cylinder taken — deducted from salary</span></span>
+             <span class="gaswrap" style="${food.gas?'':'visibility:hidden'}">−<input type="number" inputmode="numeric" class="gasAmt" data-w="${w.id}" value="${food.gasAmt||''}" placeholder="0"></span></div>`;
+      }
       if(food.applies && food.otherHalf){
-        foodRows = `<div class="row muted-row"><span>🍚 ఆహార ఖర్చులు ${fmtRupee(food.allow)} — ${food.recHalf===1?'1–15':'16–నెల చివరి'} జీతంతో ఇచ్చాం<span class="en2">Food expenses already added with the ${food.recHalf===1?'1st-half':'2nd-half'} salary this month</span></span><span></span></div>`;
+        foodBox = `<div class="food-box muted"><div class="fb-row"><span>🍚 ఆహార ఖర్చులు ${fmtRupee(food.allow)}<span class="en2">Already given with the ${food.recHalf===1?'1st-half (1–15)':'2nd-half (16–end)'} salary this month</span></span><span>✓</span></div></div>`;
       } else if(food.applies){
-        foodRows =
-          `<label class="row food-row food-check"><span><input type="checkbox" class="foodGiven" data-w="${w.id}" ${food.given?'checked':''}> 🍚 ఆహార ఖర్చులు · Food expenses ${fmtRupee(food.allow)}<span class="en2">${food.given?'Added to this salary (once a month)':'Tick to add to this salary'}</span></span><span>${food.given?'+'+fmtRupee(food.allow):'—'}</span></label>` +
-          (food.given ? `<div class="row gas-row"><span><label class="gas-lbl"><input type="checkbox" class="gasTaken" data-w="${w.id}" ${food.gas?'checked':''}> 🔥 గ్యాస్ సిలిండర్ తీసుకున్నారు</label><span class="en2">Gas cylinder — comes off food expenses, not salary</span></span>
-             <span class="gaswrap" style="${food.gas?'':'visibility:hidden'}">−<input type="number" inputmode="numeric" class="gasAmt" data-w="${w.id}" value="${food.gasAmt||''}" placeholder="0"></span></div>
-           ${food.over?`<div class="row defer-block"><span>⚠️ గ్యాస్ ${fmtRupee(food.gasAmt)} — ${fmtRupee(food.allow)} వరకే తీసివేశాం<span class="en2">Gas is more than food expenses — only ${fmtRupee(food.allow)} taken off, salary untouched</span></span><span></span></div>`:''}` : '');
-      } else if(!isMonthly && foodAllowanceOf(w)>0 && parts.half===1){
-        foodRows = `<div class="row muted-row"><span>🍚 ఆహార ఖర్చులు ${fmtRupee(foodAllowanceOf(w))} — 16 నుండి నెల చివరి జీతంతో<span class="en2">Food expenses are paid with the 2nd-half salary</span></span><span></span></div>`;
+        foodBox = `<div class="food-box">
+            <label class="fb-row fb-check"><span><input type="checkbox" class="foodGiven" data-w="${w.id}" ${food.given?'checked':''}> 🍚 ఆహార ఖర్చులు ఇచ్చారు<span class="en2">Food expenses · given separately, not part of salary</span></span><span>${fmtRupee(food.allow)}</span></label>
+            <div class="fb-row fb-total"><span>ఆహార ఖర్చుల మొత్తం<span class="en2">Food expenses total (separate)</span></span><span>${fmtRupee(food.give)}</span></div>
+          </div>`;
       }
       const advRows = givenRow +
         `<div class="row${recovered>0?' warn':''}"><span>అడ్వాన్స్ వసూలు (taken from salary)</span><span>-${fmtRupee(recovered)}</span></div>` +
@@ -2140,6 +2155,7 @@ function renderSalary(){
           ${warnRow}
           ${advRows}
           <div class="row net"><span>చెల్లించవలసినది</span><span class="amt">${fmtRupee(net)}</span></div>
+          ${foodBox}
           ` : `
           <div class="row"><span>${freqPill} (ఈ పీరియడ్)</span><span>${fmtRupee(dailyRate)}/day</span></div>
           <div class="row"><span>ఈ నెల ${dim} రోజులు · ${fmtRupee(dailyRate)} × ${dim} = ${fmtRupee(monthTotal)} (పూర్తి నెల)</span><span></span></div>
@@ -2153,6 +2169,7 @@ function renderSalary(){
           <div class="row net"><span>చెల్లించవలసినది</span><span class="amt">${fmtRupee(net)}</span></div>
           ${(!paid && extraPaidSep>0) ? `<div class="row extra-row"><span>✓ అదనపు జీతం ఇప్పటికే ఇచ్చారు<span class="en2">Extra already paid separately</span></span><span>−${fmtRupee(extraPaidSep)}</span></div>
           <div class="row net"><span>ఇంకా ఇవ్వాలి (left to give)</span><span class="amt">${fmtRupee(leftToGive)}</span></div>` : ''}
+          ${foodBox}
           `}
         </div>
         ${(outstanding>0 || recovered>0) ? `<div class="outstanding-note">బకాయి అడ్వాన్స్ (Outstanding advance): <b>${fmtRupee(outstanding)}</b>${recovered>0 ? ` <span class="adj">— ఈ జీతం నుండి ${fmtRupee(recovered)} తీసివేశారు (${fmtRupee(owedBefore)} → ${fmtRupee(owedAfter)})</span>` : ''}</div>` : ''}
@@ -2248,7 +2265,7 @@ function renderSalary(){
   main.querySelectorAll('.foodGiven').forEach(cb=>{
     cb.addEventListener('change', ()=>{
       const w = state.workers.find(x=>x.id===cb.dataset.w);
-      setFood(w, parts, cb.checked ? {given:true, half:parts.half} : {given:false, half:null, gas:false, gasAmt:0});
+      setFood(w, parts, cb.checked ? {given:true, half:parts.half} : {given:false, half:null});
       saveState();
       render();
     });
@@ -2256,7 +2273,7 @@ function renderSalary(){
   main.querySelectorAll('.gasTaken').forEach(cb=>{
     cb.addEventListener('change', ()=>{
       const w = state.workers.find(x=>x.id===cb.dataset.w);
-      setFood(w, parts, cb.checked ? {gas:true} : {gas:false, gasAmt:0});
+      setFood(w, parts, cb.checked ? {gas:true, gasHalf:parts.half} : {gas:false, gasHalf:null, gasAmt:0});
       saveState();
       render();
       if(cb.checked){
@@ -2269,7 +2286,7 @@ function renderSalary(){
     inp.addEventListener('focus', ()=> inp.select());
     inp.addEventListener('change', ()=>{
       const w = state.workers.find(x=>x.id===inp.dataset.w);
-      setFood(w, parts, {gas:true, gasAmt: Number(inp.value)||0});
+      setFood(w, parts, {gas:true, gasHalf:parts.half, gasAmt: Number(inp.value)||0});
       saveState();
       render();
     });
